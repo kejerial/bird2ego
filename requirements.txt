@@ -1,0 +1,8 @@
+opencv-python
+numpy
+pyyaml
+networkx
+pydantic
+pytest
+mediapipe
+ultralytics

@@ -1,0 +1,127 @@
+# Industrial Task Video Analysis System - Default Configuration
+# Schema version: 1.0
+
+# Video processing settings
+video:
+  # Target frame rate for extraction (null = use original)
+  target_fps: 30.0
+  # Maximum frames to process (null = all)
+  max_frames: null
+
+# Frame processing settings
+frame:
+  # Resize policy: none, resize, letterbox, crop_center
+  resize_policy: none
+  # Target dimensions (only used if resize_policy != none)
+  target_width: 640
+  target_height: 480
+  # Normalize pixel values to [0, 1]
+  normalize: false
+
+# Pose estimation settings
+pose:
+  # Backend: stub (for testing), or future: mediapipe, openpose
+  backend_2d: stub
+  backend_3d: stub
+  # Minimum confidence thresholds for usable joints
+  min_joint_conf_2d: 0.2
+  min_joint_conf_3d: 0.2
+  # Smoothing settings
+  smoothing:
+    method: one_euro  # none, moving_average, exponential, one_euro
+    window_size: 5
+    alpha: 0.5
+    one_euro:
+      min_cutoff: 1.0
+      beta: 0.007
+      d_cutoff: 1.0
+
+# Object detection settings
+objects:
+  # Backend: stub (for testing), or future: yolo, detr
+  detector_backend: stub
+  # Classes of interest (null = all classes)
+  classes: null
+  # Confidence threshold for detections
+  confidence_threshold: 0.5
+  # Number of objects for stub backend
+  stub_num_objects: 3
+
+# Object tracking settings
+tracker:
+  # Backend: iou (simple IoU tracker)
+  backend: iou
+  # IoU threshold for matching
+  iou_threshold: 0.3
+  # Maximum frames without detection before removing track
+  max_age: 30
+  # Minimum hits before track is confirmed
+  min_hits: 3
+  # Interpolate gaps in tracks
+  interpolate_gaps: true
+  max_gap_frames: 10
+
+# Contact detection settings
+contact:
+  # Distance threshold for contact (pixels)
+  distance_threshold: 50.0
+  # Temporal hysteresis (frames)
+  onset_frames: 2
+  offset_frames: 3
+  # Use hand center (wrist + elbow midpoint) instead of just wrist
+  use_hand_center: true
+
+# Interaction classification settings
+interaction:
+  # Motion thresholds
+  motion_threshold: 5.0  # pixels per frame
+  motion_correlation_threshold: 0.7
+  # Duration thresholds (frames)
+  min_grasp_duration: 5
+  min_push_duration: 3
+
+# Action segmentation settings
+segmentation:
+  # Minimum segment duration (frames)
+  min_duration: 10
+  # Merge segments shorter than this (frames)
+  merge_threshold: 5
+  # Hysteresis for boundary stability (frames)
+  hysteresis: 3
+  # State changes to detect
+  detect_contact_changes: true
+  detect_motion_changes: true
+  detect_support_changes: true
+  detect_containment_changes: true
+
+# State classification settings
+state:
+  # Motion threshold for "moving" state (pixels per frame)
+  motion_threshold: 5.0
+  # Window for motion averaging (frames)
+  motion_window: 3
+  # Fixture and container classes
+  fixture_classes:
+    - fixture
+    - machine
+    - station
+  container_classes:
+    - bin
+    - box
+    - container
+
+# Task graph settings
+graph:
+  # Require shared objects for causal edges
+  require_shared_objects: true
+  # Minimum confidence for causal edges
+  min_causal_confidence: 0.5
+  # Add temporal edges when no causal found
+  add_temporal_fallback: true
+
+# Output settings
+output:
+  # JSON indentation level
+  json_indent: 2
+  # Export debug visualization
+  export_visualization: false
