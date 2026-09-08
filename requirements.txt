@@ -1,8 +1,19 @@
-opencv-python
-numpy
-pyyaml
-networkx
-pydantic
-pytest
-mediapipe
-ultralytics
+# Core runtime
+numpy==2.4.6
+opencv-python==5.0.0.93
+pyyaml==6.0.3
+networkx==3.6.1
+pydantic==2.13.5
+
+# Real backends (optional for the stub config, required for configs/real.yaml)
+# mediapipe 1.0.1 aborts on macOS arm64: the pose graph asks for a Metal
+# service that the wheel does not register. 0.10.35 runs on CPU and works.
+# It installs opencv-contrib-python 4.x alongside opencv-python.
+mediapipe==0.10.35
+ultralytics==8.4.143
+
+# Demo GIF (scripts/make_demo_gif.py)
+imageio==2.37.4
+
+# Tests
+pytest==9.1.1
