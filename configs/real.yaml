@@ -1,4 +1,9 @@
-# bird2ego - default configuration (all model backends stubbed)
+# bird2ego - real-backend configuration
+#
+# Uses MediaPipe for 2D pose and YOLOv8 for object detection.
+# Install the model backends first: pip install -r requirements.txt
+# MediaPipe and ultralytics download their weights on first use.
+# backend_3d uses the metric 3D landmarks MediaPipe already produces.
 # Schema version: 1.0
 
 # Video processing settings
@@ -21,9 +26,9 @@ frame:
 # Pose estimation settings
 pose:
   # backend_2d: stub (synthetic, for testing) or mediapipe
-  backend_2d: stub
-  # backend_3d: stub only (no real lifter is implemented yet)
-  backend_3d: stub
+  backend_2d: mediapipe
+  # backend_3d: stub, or mediapipe_world for MediaPipe metric 3D joints
+  backend_3d: mediapipe_world
   # Minimum confidence thresholds for usable joints
   min_joint_conf_2d: 0.2
   min_joint_conf_3d: 0.2
@@ -40,8 +45,8 @@ pose:
 # Object detection settings
 objects:
   # detector_backend: stub (synthetic, for testing) or yolo
-  detector_backend: stub
-  # Classes of interest (null = all classes)
+  detector_backend: yolo
+  # Classes of interest. yolo expects COCO class IDs; null = all 80 classes.
   classes: null
   # Confidence threshold for detections
   confidence_threshold: 0.5
@@ -133,7 +138,7 @@ egocentric:
   render: true
   # Run the MediaPipe hand landmarker for 21 landmarks per hand.
   # Requires mediapipe. Leave false for the stub backends.
-  detect_hands: false
+  detect_hands: true
   hand_min_confidence: 0.5
   # Render size and field of view
   render_width: 960

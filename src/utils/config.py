@@ -126,6 +126,22 @@ class GraphConfig:
 
 
 @dataclass
+class EgocentricConfig:
+    """Egocentric stage configuration."""
+    enabled: bool = False
+    export_frames: bool = True
+    render: bool = False
+    detect_hands: bool = False
+    hand_min_confidence: float = 0.5
+    render_width: int = 960
+    render_height: int = 720
+    fov_horizontal: float = 90.0
+    gaze_down_angle: float = 30.0
+    eye_offset_forward: float = 0.1
+    pinch_threshold: float = 0.05
+
+
+@dataclass
 class OutputConfig:
     """Output configuration."""
     json_indent: int = 2
@@ -145,6 +161,7 @@ class PipelineConfig:
     segmentation: SegmentationConfig = field(default_factory=SegmentationConfig)
     state: StateConfig = field(default_factory=StateConfig)
     graph: GraphConfig = field(default_factory=GraphConfig)
+    egocentric: EgocentricConfig = field(default_factory=EgocentricConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
 
 
@@ -301,6 +318,24 @@ def _dict_to_config(data: Dict[str, Any]) -> PipelineConfig:
             add_temporal_fallback=g.get("add_temporal_fallback", config.graph.add_temporal_fallback),
         )
 
+    # Egocentric config
+    if "egocentric" in data:
+        e = data["egocentric"]
+        defaults = config.egocentric
+        config.egocentric = EgocentricConfig(
+            enabled=e.get("enabled", defaults.enabled),
+            export_frames=e.get("export_frames", defaults.export_frames),
+            render=e.get("render", defaults.render),
+            detect_hands=e.get("detect_hands", defaults.detect_hands),
+            hand_min_confidence=e.get("hand_min_confidence", defaults.hand_min_confidence),
+            render_width=e.get("render_width", defaults.render_width),
+            render_height=e.get("render_height", defaults.render_height),
+            fov_horizontal=e.get("fov_horizontal", defaults.fov_horizontal),
+            gaze_down_angle=e.get("gaze_down_angle", defaults.gaze_down_angle),
+            eye_offset_forward=e.get("eye_offset_forward", defaults.eye_offset_forward),
+            pinch_threshold=e.get("pinch_threshold", defaults.pinch_threshold),
+        )
+
     # Output config
     if "output" in data:
         out = data["output"]
@@ -406,6 +441,19 @@ def _config_to_dict(config: PipelineConfig) -> Dict[str, Any]:
             "require_shared_objects": config.graph.require_shared_objects,
             "min_causal_confidence": config.graph.min_causal_confidence,
             "add_temporal_fallback": config.graph.add_temporal_fallback,
+        },
+        "egocentric": {
+            "enabled": config.egocentric.enabled,
+            "export_frames": config.egocentric.export_frames,
+            "render": config.egocentric.render,
+            "detect_hands": config.egocentric.detect_hands,
+            "hand_min_confidence": config.egocentric.hand_min_confidence,
+            "render_width": config.egocentric.render_width,
+            "render_height": config.egocentric.render_height,
+            "fov_horizontal": config.egocentric.fov_horizontal,
+            "gaze_down_angle": config.egocentric.gaze_down_angle,
+            "eye_offset_forward": config.egocentric.eye_offset_forward,
+            "pinch_threshold": config.egocentric.pinch_threshold,
         },
         "output": {
             "json_indent": config.output.json_indent,

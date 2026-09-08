@@ -1,6 +1,7 @@
 """Shared utilities and data contracts."""
 from .config import (
     ContactConfig,
+    EgocentricConfig,
     FrameConfig,
     GraphConfig,
     InteractionConfig,
@@ -80,6 +81,7 @@ __all__ = [
     "is_joint_usable",
     # Config
     "ContactConfig",
+    "EgocentricConfig",
     "FrameConfig",
     "GraphConfig",
     "InteractionConfig",

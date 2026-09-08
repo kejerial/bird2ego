@@ -16,6 +16,12 @@ from .actions import (
     SkillBoundaryConfig,
     SkillBoundaryDetector,
 )
+from .egocentric import (
+    EgocentricStage,
+    EgocentricTimeSeries,
+    export_egocentric_json,
+    summarize_series,
+)
 from .contact import (
     ContactDetector,
     ContactDetectorConfig,
@@ -211,6 +217,21 @@ class PipelineOrchestrator:
         )
         self.task_graph_builder = TaskGraphBuilder()
 
+        # Egocentric transform
+        self.egocentric_stage: Optional[EgocentricStage] = None
+        if cfg.egocentric.enabled:
+            self.egocentric_stage = EgocentricStage(
+                width=cfg.egocentric.render_width,
+                height=cfg.egocentric.render_height,
+                fov_horizontal=cfg.egocentric.fov_horizontal,
+                gaze_down_angle=cfg.egocentric.gaze_down_angle,
+                eye_offset_forward=cfg.egocentric.eye_offset_forward,
+                pinch_threshold=cfg.egocentric.pinch_threshold,
+                min_joint_conf=cfg.pose.min_joint_conf_3d,
+                detect_hands=cfg.egocentric.detect_hands,
+                hand_min_confidence=cfg.egocentric.hand_min_confidence,
+            )
+
     def process(
         self,
         video_path: str,
@@ -335,8 +356,22 @@ class PipelineOrchestrator:
             f"  Graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges"
         )
 
-        # Step 13: Validate timeline
-        logger.info("Step 13: Validating timeline...")
+        # Step 13: Egocentric transform
+        ego_series: Optional[EgocentricTimeSeries] = None
+        if self.egocentric_stage is not None:
+            logger.info("Step 13: Building egocentric view...")
+            ego_series = self.egocentric_stage.run(timeline, frames)
+            counts = summarize_series(ego_series)
+            logger.info(
+                "  Ego: %d frames, %d with head pose, %d with hands, %d with objects",
+                counts["num_frames"],
+                counts["frames_with_head"],
+                counts["frames_with_left_hand"] + counts["frames_with_right_hand"],
+                counts["frames_with_objects"],
+            )
+
+        # Step 14: Validate timeline
+        logger.info("Step 14: Validating timeline...")
         valid, warnings = self.temporal_alignment.validate_timeline(timeline)
         if not valid:
             for w in warnings:
@@ -344,10 +379,10 @@ class PipelineOrchestrator:
         else:
             logger.info("  Timeline valid")
 
-        # Step 14: Export outputs
-        logger.info("Step 14: Exporting outputs...")
+        # Step 15: Export outputs
+        logger.info("Step 15: Exporting outputs...")
         output_paths = self._export_outputs(
-            timeline, output_dir, run_id
+            timeline, output_dir, run_id, ego_series
         )
 
         elapsed = time.time() - start_time
@@ -373,6 +408,7 @@ class PipelineOrchestrator:
         timeline: Timeline,
         output_dir: str,
         run_id: str,
+        ego_series: Optional[EgocentricTimeSeries] = None,
     ) -> Dict[str, str]:
         """Export all outputs.
 
@@ -380,6 +416,7 @@ class PipelineOrchestrator:
             timeline: Processed timeline.
             output_dir: Output directory.
             run_id: Run identifier.
+            ego_series: Egocentric time series, when the stage ran.
 
         Returns:
             Dictionary mapping output type to file path.
@@ -406,7 +443,79 @@ class PipelineOrchestrator:
         graph_paths = graph_exporter.export_all(self.task_graph_builder)
         paths.update({f"graph_{k}": v for k, v in graph_paths.items()})
 
+        # Export egocentric outputs
+        if ego_series is not None:
+            paths.update(
+                self._export_egocentric(ego_series, timeline, output_path, run_id)
+            )
+
         logger.info(f"Exported {len(paths)} output files to {output_path}")
+        return paths
+
+    def _export_egocentric(
+        self,
+        ego_series: EgocentricTimeSeries,
+        timeline: Timeline,
+        output_path: Path,
+        run_id: str,
+    ) -> Dict[str, str]:
+        """Write the egocentric JSON and, when configured, the render video.
+
+        Args:
+            ego_series: Egocentric time series.
+            timeline: Processed timeline, for metadata and object classes.
+            output_path: Output directory.
+            run_id: Run identifier.
+
+        Returns:
+            Dictionary mapping output type to file path.
+        """
+        cfg = self.config.egocentric
+        paths: Dict[str, str] = {}
+        fps = timeline.fps_extracted or self.config.video.target_fps or 30.0
+
+        if cfg.export_frames:
+            ego_json = output_path / "egocentric.json"
+            export_egocentric_json(
+                ego_series,
+                str(ego_json),
+                video_info={
+                    "run_id": run_id,
+                    "fps": fps,
+                    "num_frames": timeline.num_frames,
+                    "width": timeline.frames[0].width if timeline.frames else 0,
+                    "height": timeline.frames[0].height if timeline.frames else 0,
+                    "units": "m",
+                    "frame": "egocentric: x=right, y=down, z=forward",
+                },
+                action_labels=[
+                    {
+                        "frame_start": seg.frame_start,
+                        "frame_end": seg.frame_end,
+                        "action": seg.label,
+                        "object_id": (
+                            seg.objects_involved[0] if seg.objects_involved else None
+                        ),
+                    }
+                    for seg in timeline.segments
+                ],
+                indent=self.config.output.json_indent,
+            )
+            paths["egocentric"] = str(ego_json)
+
+        if cfg.render and self.egocentric_stage is not None:
+            object_classes = {
+                oid: track.class_name for oid, track in timeline.objects.items()
+            }
+            rendered = self.egocentric_stage.render_video(
+                ego_series,
+                str(output_path / "egocentric.mp4"),
+                fps=fps,
+                object_classes=object_classes,
+            )
+            if rendered:
+                paths["egocentric_video"] = rendered
+
         return paths
 
 
