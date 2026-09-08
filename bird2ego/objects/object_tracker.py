@@ -85,13 +85,12 @@ class IoUTracker:
         track_ids = list(self._tracks.keys())
         if track_ids:
             iou_matrix = self._compute_iou_matrix(track_ids, detections)
-            matches, unmatched_dets, unmatched_tracks = self._hungarian_match(
+            matches, unmatched_dets, _unmatched_tracks = self._hungarian_match(
                 iou_matrix, track_ids, detections
             )
         else:
             matches = []
             unmatched_dets = list(range(len(detections)))
-            unmatched_tracks = []
 
         # Update matched tracks
         results = []

@@ -8,11 +8,14 @@ from __future__ import annotations
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple, Dict
+from typing import TYPE_CHECKING, List, Optional, Tuple, Dict
 from collections import deque
 
 import cv2
 import numpy as np
+
+if TYPE_CHECKING:
+    from ..utils.timeline import HandFrame
 
 # Hand landmark indices
 WRIST = 0
@@ -508,7 +511,7 @@ class ImprovedContactDetector:
 def hand_landmarks_to_hand_frame(
     hand: HandLandmarks,
     frame_idx: int,
-) -> 'HandFrame':  # type: ignore
+) -> "HandFrame":
     """Convert HandLandmarks to HandFrame for timeline storage.
     
     Args:

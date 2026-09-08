@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -28,6 +28,9 @@ from bird2ego.utils.timeline import (
     ObjectTrack,
     create_empty_object_track,
 )
+
+if TYPE_CHECKING:
+    from bird2ego.egocentric.transformer import EgocentricFrame
 
 
 # Colors for visualization (BGR)
@@ -455,7 +458,7 @@ class WebcamTestBench:
 
         return vis_frame
     
-    def _compute_egocentric(self, pose_frame, tracked_objects) -> 'EgocentricFrame':
+    def _compute_egocentric(self, pose_frame, tracked_objects) -> "EgocentricFrame":
         """Compute egocentric frame from current data.
         
         This creates a TRUE first-person POV by:

@@ -145,7 +145,6 @@ class JSONExporter:
             height = timeline.frames[0].height if timeline.frames else 0
 
             # Build arrays
-            T = pose.num_frames
             bbox_xyxy = [f.bbox_xyxy for f in pose.frames]
             frame_idx = [f.frame_idx for f in pose.frames]
             keypoints_2d_px = [f.keypoints_2d_px for f in pose.frames]

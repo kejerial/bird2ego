@@ -233,7 +233,6 @@ class ActionClassifier:
         support_changes = [sc for sc in state_changes if sc["type"] == "support_relation"]
         containment_changes = [sc for sc in state_changes if sc["type"] == "containment"]
         motion_changes = [sc for sc in state_changes if sc["type"] == "motion_state"]
-        interaction_changes = [sc for sc in state_changes if sc["type"] == "interaction_state"]
 
         # Rule 1: PICK - grasp event + support changes from table/fixture to hand
         if "grasp" in event_labels:
