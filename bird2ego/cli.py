@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+from . import __version__
 from .pipeline import run_pipeline
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,11 @@ Examples:
   bird2ego --config configs/real.yaml --input video.mp4 --out results/
   bird2ego -i video.mp4 -o output/ --run-id my_run_001
         """,
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"bird2ego {__version__}",
     )
     parser.add_argument(
         "--config",
