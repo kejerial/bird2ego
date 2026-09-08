@@ -203,6 +203,8 @@ class ObjectDetector:
             self._detector = StubObjectDetector(classes=classes, **kwargs)
         elif backend == "yolo":
             from .yolo_detector import YOLODetector
+            # num_objects is a stub-only option; YOLO ignores it.
+            kwargs.pop("num_objects", None)
             self._detector = YOLODetector(classes=classes, **kwargs)
         else:
             raise ValueError(f"Unknown backend: {backend}. Use 'stub' or 'yolo'")
