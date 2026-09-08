@@ -114,6 +114,10 @@ class PoseFrame:
     joint_visible: List[bool]  # (17,)
     joint_occluded: List[bool]  # (17,)
     joint_in_frame: List[bool]  # (17,)
+    # Metric 3D joints straight from the estimator, when the backend supplies
+    # them. MediaPipe pose_world_landmarks fill this. None means the estimator
+    # gives no metric 3D and the lifter must derive coords_3d another way.
+    world_coords_3d: Optional[List[List[float]]] = None
 
 
 @dataclass

@@ -28,6 +28,7 @@ class PoseLifter3DBase(ABC):
         keypoints_2d: np.ndarray,
         conf_2d: np.ndarray,
         image_size: tuple,
+        world_coords_3d: Optional[np.ndarray] = None,
     ) -> tuple:
         """Lift 2D keypoints to 3D root-relative coordinates.
 
@@ -35,10 +36,12 @@ class PoseLifter3DBase(ABC):
             keypoints_2d: 2D keypoints, shape (17, 2).
             conf_2d: Confidence scores, shape (17,).
             image_size: (width, height) of the image.
+            world_coords_3d: Optional metric 3D joints, shape (17, 3), supplied
+                by the 2D estimator. Backends that derive 3D from 2D ignore it.
 
         Returns:
             Tuple of (coords_3d, conf_3d) where:
-                coords_3d: shape (17, 3), root-relative, units="arb"
+                coords_3d: shape (17, 3), root-relative
                 conf_3d: shape (17,)
         """
         pass
@@ -94,6 +97,7 @@ class StubPoseLifter3D(PoseLifter3DBase):
         keypoints_2d: np.ndarray,
         conf_2d: np.ndarray,
         image_size: tuple,
+        world_coords_3d: Optional[np.ndarray] = None,
     ) -> tuple:
         """Lift 2D to 3D using simple heuristics."""
         w, h = image_size
@@ -163,12 +167,66 @@ class StubPoseLifter3D(PoseLifter3DBase):
         return coords_3d, conf_3d
 
 
+class MediaPipeWorldLifter(PoseLifter3DBase):
+    """Use the metric 3D joints MediaPipe already produces.
+
+    MediaPipe Pose Landmarker returns `pose_world_landmarks` in metres, with
+    the origin at the hip midpoint and the image axis convention: x right,
+    y down, z towards the camera. That matches the pipeline 3D contract, so
+    this backend re-roots the joints on the hip midpoint and passes them
+    through. It never invents data: a frame without world landmarks gets
+    sentinels.
+    """
+
+    def __init__(self, min_confidence: float = 0.2):
+        """Initialize the lifter.
+
+        Args:
+            min_confidence: Minimum 2D confidence for a joint to be kept.
+        """
+        self.min_confidence = min_confidence
+
+    def lift(
+        self,
+        keypoints_2d: np.ndarray,
+        conf_2d: np.ndarray,
+        image_size: tuple,
+        world_coords_3d: Optional[np.ndarray] = None,
+    ) -> tuple:
+        """Pass MediaPipe world landmarks through, re-rooted on the hips."""
+        coords_3d = np.full((NUM_JOINTS, 3), SENTINEL_3D, dtype=np.float32)
+        conf_3d = np.full(NUM_JOINTS, SENTINEL_CONF, dtype=np.float32)
+
+        if world_coords_3d is None:
+            return coords_3d, conf_3d
+
+        world = np.asarray(world_coords_3d, dtype=np.float32)
+        valid = (conf_2d > self.min_confidence) & (world[:, 0] != SENTINEL_3D[0])
+        if not np.any(valid):
+            return coords_3d, conf_3d
+
+        # Re-root on the hip midpoint. MediaPipe already does this, but a
+        # missing hip landmark would otherwise shift the whole skeleton.
+        left_hip = JOINT_IDX["left_hip"]
+        right_hip = JOINT_IDX["right_hip"]
+        if valid[left_hip] and valid[right_hip]:
+            root = (world[left_hip] + world[right_hip]) / 2.0
+        else:
+            root = world[valid].mean(axis=0)
+
+        coords_3d[valid] = world[valid] - root
+        conf_3d[valid] = conf_2d[valid]
+
+        return coords_3d, conf_3d
+
+
 class PoseLifter3D:
     """3D pose lifter with configurable backend.
 
     Coord frame: root-relative-camera
     Axis convention: x=right, y=down, z=forward (camera)
-    Units: "arb" (scale-ambiguous)
+    Units: metres for the "mediapipe_world" backend, "arb" (scale-ambiguous)
+    for the "stub" backend.
     """
 
     def __init__(
@@ -186,10 +244,18 @@ class PoseLifter3D:
         """
         self.min_confidence = min_confidence
 
+        self.backend = backend
+
         if backend == "stub":
             self._lifter = StubPoseLifter3D(**kwargs)
+        elif backend == "mediapipe_world":
+            self._lifter = MediaPipeWorldLifter(
+                min_confidence=min_confidence, **kwargs
+            )
         else:
-            raise ValueError(f"Unknown backend: {backend}")
+            raise ValueError(
+                f"Unknown backend: {backend}. Use 'stub' or 'mediapipe_world'"
+            )
 
     def lift_frame(
         self,
@@ -207,8 +273,15 @@ class PoseLifter3D:
         """
         keypoints_2d = np.array(pose_frame.keypoints_2d_px, dtype=np.float32)
         conf_2d = np.array(pose_frame.conf_2d, dtype=np.float32)
+        world_coords_3d = (
+            np.array(pose_frame.world_coords_3d, dtype=np.float32)
+            if pose_frame.world_coords_3d is not None
+            else None
+        )
 
-        coords_3d, conf_3d = self._lifter.lift(keypoints_2d, conf_2d, image_size)
+        coords_3d, conf_3d = self._lifter.lift(
+            keypoints_2d, conf_2d, image_size, world_coords_3d
+        )
 
         # Update pose frame with 3D data
         pose_frame.coords_3d = coords_3d.tolist()

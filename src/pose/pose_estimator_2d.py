@@ -28,6 +28,9 @@ class Detection2D:
     keypoints_2d: np.ndarray  # (17, 2)
     conf_2d: np.ndarray  # (17,)
     person_conf: float  # overall confidence
+    # Metric 3D joints in metres, root at the hip midpoint, when the backend
+    # provides them. MediaPipe fills this from pose_world_landmarks.
+    world_keypoints_3d: Optional[np.ndarray] = None  # (17, 3) or None
 
 
 class PoseEstimator2DBase(ABC):
@@ -288,6 +291,11 @@ class PoseEstimator2D:
             joint_visible=joint_visible,
             joint_occluded=joint_occluded,
             joint_in_frame=joint_in_frame,
+            world_coords_3d=(
+                det.world_keypoints_3d.tolist()
+                if det.world_keypoints_3d is not None
+                else None
+            ),
         )
 
     def estimate_video(

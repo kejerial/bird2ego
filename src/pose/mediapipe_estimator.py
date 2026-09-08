@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 
 from .pose_estimator_2d import PoseEstimator2DBase, Detection2D
-from ..utils.timeline import NUM_JOINTS, SENTINEL_2D
+from ..utils.timeline import NUM_JOINTS, SENTINEL_2D, SENTINEL_3D
 
 logger = logging.getLogger(__name__)
 
@@ -140,11 +140,22 @@ class MediaPipePoseEstimator(PoseEstimator2DBase):
         
         # Get first person's landmarks
         landmarks = results.pose_landmarks[0]
+
+        # Metric 3D landmarks, in metres, origin at the hip midpoint.
+        # MediaPipe uses the same axis convention as the image: x right,
+        # y down, z towards the camera.
+        world_landmarks = None
+        if getattr(results, "pose_world_landmarks", None):
+            world_landmarks = results.pose_world_landmarks[0]
         
         # Convert MediaPipe landmarks to COCO17 format
         keypoints = np.full((NUM_JOINTS, 2), SENTINEL_2D, dtype=np.float32)
         conf = np.zeros(NUM_JOINTS, dtype=np.float32)
         
+        world_keypoints = None
+        if world_landmarks is not None:
+            world_keypoints = np.full((NUM_JOINTS, 3), SENTINEL_3D, dtype=np.float32)
+
         for mp_idx, coco_idx in MP_TO_COCO17.items():
             if mp_idx < len(landmarks):
                 lm = landmarks[mp_idx]
@@ -157,6 +168,9 @@ class MediaPipePoseEstimator(PoseEstimator2DBase):
                 if visibility > 0.1:
                     keypoints[coco_idx] = [x, y]
                     conf[coco_idx] = visibility
+                    if world_keypoints is not None and mp_idx < len(world_landmarks):
+                        wlm = world_landmarks[mp_idx]
+                        world_keypoints[coco_idx] = [wlm.x, wlm.y, wlm.z]
                 else:
                     keypoints[coco_idx] = SENTINEL_2D
                     conf[coco_idx] = 0.0
@@ -181,6 +195,7 @@ class MediaPipePoseEstimator(PoseEstimator2DBase):
                 keypoints_2d=keypoints,
                 conf_2d=conf,
                 person_conf=person_conf,
+                world_keypoints_3d=world_keypoints,
             )
         ]
 
