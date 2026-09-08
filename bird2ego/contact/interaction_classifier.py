@@ -1,4 +1,5 @@
 """InteractionClassifier: classifies contact interactions using heuristics."""
+
 from __future__ import annotations
 
 import logging
@@ -11,7 +12,6 @@ import numpy as np
 from ..utils.timeline import (
     Containment,
     HandSide,
-    MotionState,
     ObjectTrack,
     PersonPose,
     SupportRelation,
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class InteractionLabel(str, Enum):
     """Labels for hand-object interactions."""
+
     GRASP = "grasp"
     PUSH = "push"
     PULL = "pull"
@@ -35,6 +36,7 @@ class InteractionLabel(str, Enum):
 @dataclass
 class InteractionClassifierConfig:
     """Configuration for interaction classification."""
+
     # Motion thresholds
     motion_threshold: float = 5.0  # pixels per frame for "moving"
     motion_correlation_threshold: float = 0.7  # hand-object motion correlation
@@ -50,6 +52,7 @@ class InteractionClassifierConfig:
 @dataclass
 class ClassifiedInteraction:
     """A classified interaction instance."""
+
     hand: HandSide
     object_id: int
     label: InteractionLabel
@@ -104,8 +107,14 @@ class InteractionClassifier:
         interactions = []
         for hand, object_id, frame_start, frame_end in segments:
             interaction = self._classify_segment(
-                hand, object_id, frame_start, frame_end,
-                contacts_per_frame, person_pose, object_tracks, fps
+                hand,
+                object_id,
+                frame_start,
+                frame_end,
+                contacts_per_frame,
+                person_pose,
+                object_tracks,
+                fps,
             )
             if interaction is not None:
                 interactions.append(interaction)
@@ -192,12 +201,8 @@ class InteractionClassifier:
         track = object_tracks[object_id]
 
         # Compute hand and object motion during segment
-        hand_motion = self._compute_hand_motion(
-            person_pose, hand, frame_start, frame_end
-        )
-        object_motion = self._compute_object_motion(
-            track, frame_start, frame_end
-        )
+        hand_motion = self._compute_hand_motion(person_pose, hand, frame_start, frame_end)
+        object_motion = self._compute_object_motion(track, frame_start, frame_end)
 
         # Compute motion correlation
         motion_corr = self._compute_motion_correlation(
@@ -218,8 +223,15 @@ class InteractionClassifier:
 
         # Classification rules
         label, confidence = self._apply_classification_rules(
-            duration, hand_motion, object_motion, motion_corr,
-            state_before, state_after, track, frame_start, frame_end
+            duration,
+            hand_motion,
+            object_motion,
+            motion_corr,
+            state_before,
+            state_after,
+            track,
+            frame_start,
+            frame_end,
         )
 
         if label == InteractionLabel.UNKNOWN and duration < 3:
@@ -341,10 +353,14 @@ class InteractionClassifier:
             bbox1 = track.frames[t].bbox_xyxy
             bbox2 = track.frames[t + 1].bbox_xyxy
 
-            if (kp1 != SENTINEL_2D and kp2 != SENTINEL_2D and
-                bbox1 != SENTINEL_BBOX and bbox2 != SENTINEL_BBOX):
+            if (
+                kp1 != SENTINEL_2D
+                and kp2 != SENTINEL_2D
+                and bbox1 != SENTINEL_BBOX
+                and bbox2 != SENTINEL_BBOX
+            ):
                 # Hand velocity
-                hv = np.sqrt((kp2[0] - kp1[0])**2 + (kp2[1] - kp1[1])**2)
+                hv = np.sqrt((kp2[0] - kp1[0]) ** 2 + (kp2[1] - kp1[1]) ** 2)
                 hand_vels.append(hv)
 
                 # Object velocity
@@ -352,7 +368,7 @@ class InteractionClassifier:
                 cy1 = (bbox1[1] + bbox1[3]) / 2
                 cx2 = (bbox2[0] + bbox2[2]) / 2
                 cy2 = (bbox2[1] + bbox2[3]) / 2
-                ov = np.sqrt((cx2 - cx1)**2 + (cy2 - cy1)**2)
+                ov = np.sqrt((cx2 - cx1) ** 2 + (cy2 - cy1) ** 2)
                 obj_vels.append(ov)
 
         if len(hand_vels) < 3:
@@ -386,31 +402,41 @@ class InteractionClassifier:
             Tuple of (label, confidence).
         """
         # Check for grasp: sustained contact with high motion correlation
-        if (duration >= self.config.min_grasp_duration and
-            motion_corr > self.config.motion_correlation_threshold and
-            object_motion > self.config.motion_threshold * duration * 0.5):
+        if (
+            duration >= self.config.min_grasp_duration
+            and motion_corr > self.config.motion_correlation_threshold
+            and object_motion > self.config.motion_threshold * duration * 0.5
+        ):
             return InteractionLabel.GRASP, min(0.9, 0.5 + motion_corr * 0.4)
 
         # Check for insert/remove based on state changes
         if state_before is not None and state_after is not None:
             # Insert: containment changed to in_bin/in_box
-            if (state_before.containment == Containment.NONE and
-                state_after.containment in [Containment.IN_BIN, Containment.IN_BOX]):
+            if state_before.containment == Containment.NONE and state_after.containment in [
+                Containment.IN_BIN,
+                Containment.IN_BOX,
+            ]:
                 return InteractionLabel.INSERT, 0.8
 
             # Remove: containment changed from in_bin/in_box to none
-            if (state_before.containment in [Containment.IN_BIN, Containment.IN_BOX] and
-                state_after.containment == Containment.NONE):
+            if (
+                state_before.containment in [Containment.IN_BIN, Containment.IN_BOX]
+                and state_after.containment == Containment.NONE
+            ):
                 return InteractionLabel.REMOVE, 0.8
 
             # Check for place: support_relation changed from hand to table/fixture
-            if (state_before.support_relation == SupportRelation.HAND and
-                state_after.support_relation in [SupportRelation.TABLE, SupportRelation.FIXTURE]):
+            if (
+                state_before.support_relation == SupportRelation.HAND
+                and state_after.support_relation in [SupportRelation.TABLE, SupportRelation.FIXTURE]
+            ):
                 return InteractionLabel.GRASP, 0.7  # End of grasp
 
         # Check for push/pull based on object motion without high correlation
-        if (object_motion > self.config.motion_threshold * duration and
-            motion_corr < self.config.motion_correlation_threshold):
+        if (
+            object_motion > self.config.motion_threshold * duration
+            and motion_corr < self.config.motion_correlation_threshold
+        ):
             # Determine direction relative to hand motion
             # Simplified: assume push if object moves
             if duration >= self.config.min_push_duration:

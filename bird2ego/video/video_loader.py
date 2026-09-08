@@ -1,4 +1,5 @@
 """VideoLoader: reads video files and extracts frames with timestamps."""
+
 from __future__ import annotations
 
 import logging
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VideoMetadata:
     """Metadata about a video file."""
+
     path: str
     width: int
     height: int

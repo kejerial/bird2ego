@@ -1,17 +1,14 @@
 """ActionSegmenter: segments actions based on event/state changes."""
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
-
-import numpy as np
+from typing import Dict, List, Optional
 
 from ..utils.timeline import (
     ActionSegment,
-    ContactEvent,
-    ObjectTrack,
     Timeline,
 )
 
@@ -20,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class SegmentTrigger(str, Enum):
     """Types of triggers that can start/end segments."""
+
     CONTACT_ONSET = "contact_onset"
     CONTACT_OFFSET = "contact_offset"
     SUPPORT_CHANGE = "support_change"
@@ -32,6 +30,7 @@ class SegmentTrigger(str, Enum):
 @dataclass
 class SegmentBoundary:
     """A segment boundary detected by the segmenter."""
+
     frame_idx: int
     trigger: SegmentTrigger
     objects_involved: List[int]
@@ -42,6 +41,7 @@ class SegmentBoundary:
 @dataclass
 class ActionSegmenterConfig:
     """Configuration for action segmentation."""
+
     # Minimum segment duration (frames)
     min_segment_duration: int = 5
 

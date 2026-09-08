@@ -4,10 +4,7 @@ import numpy as np
 import pytest
 
 # Add src to path
-
 from bird2ego.utils.timeline import (
-    FrameInfo,
-    Timeline,
     create_empty_object_track,
     create_empty_person_pose,
     create_empty_timeline,

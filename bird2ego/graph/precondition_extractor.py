@@ -1,4 +1,5 @@
 """PreconditionExtractor: extracts required states at segment start."""
+
 from __future__ import annotations
 
 import logging
@@ -11,7 +12,6 @@ from ..utils.timeline import (
     InteractionState,
     MotionState,
     ObjectState,
-    ObjectTrack,
     SupportRelation,
     Timeline,
 )
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ObjectPrecondition:
     """Required state for an object before an action."""
+
     object_id: int
     support_relation: Optional[SupportRelation] = None
     motion_state: Optional[MotionState] = None
@@ -68,6 +69,7 @@ class ObjectPrecondition:
 @dataclass
 class SegmentPreconditions:
     """Preconditions for an action segment."""
+
     seg_id: int
     object_preconditions: List[ObjectPrecondition] = field(default_factory=list)
 

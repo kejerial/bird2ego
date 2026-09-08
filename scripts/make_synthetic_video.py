@@ -6,6 +6,7 @@ against a plain wall and a table, so the pipeline has an input that the real
 backends can attempt. The figure is a drawing, not a photograph. Treat any
 detection result on it as a smoke test, not as accuracy evidence.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,9 +47,7 @@ def draw_frame(width: int, height: int, phase: float) -> np.ndarray:
 
     # Table with a box on it.
     table_top = int(height * 0.66)
-    cv2.rectangle(
-        canvas, (int(width * 0.55), table_top), (width, int(height * 0.80)), TABLE, -1
-    )
+    cv2.rectangle(canvas, (int(width * 0.55), table_top), (width, int(height * 0.80)), TABLE, -1)
     reach = 0.5 - 0.5 * math.cos(2 * math.pi * phase)
     box_x = int(width * 0.68)
     box_y = table_top - int(height * 0.06)
@@ -76,11 +75,9 @@ def draw_frame(width: int, height: int, phase: float) -> np.ndarray:
     knee_y = int(height * 0.72)
     ankle_y = int(height * 0.86)
     _limb(canvas, l_hip, (l_hip[0] - 6, knee_y), TROUSERS, int(height * 0.055))
-    _limb(canvas, (l_hip[0] - 6, knee_y), (l_hip[0] - 10, ankle_y), TROUSERS,
-          int(height * 0.045))
+    _limb(canvas, (l_hip[0] - 6, knee_y), (l_hip[0] - 10, ankle_y), TROUSERS, int(height * 0.045))
     _limb(canvas, r_hip, (r_hip[0] + 6, knee_y), TROUSERS, int(height * 0.055))
-    _limb(canvas, (r_hip[0] + 6, knee_y), (r_hip[0] + 10, ankle_y), TROUSERS,
-          int(height * 0.045))
+    _limb(canvas, (r_hip[0] + 6, knee_y), (r_hip[0] + 10, ankle_y), TROUSERS, int(height * 0.045))
 
     # Torso.
     torso = np.array([l_sh, r_sh, r_hip, l_hip], dtype=np.int32)
@@ -114,15 +111,34 @@ def draw_frame(width: int, height: int, phase: float) -> np.ndarray:
     # Face marks give the detector eye and ear cues.
     eye_dx = int(head_r * 0.38)
     eye_y = head_c[1] - int(head_r * 0.15)
-    cv2.circle(canvas, (head_c[0] - eye_dx, eye_y), max(2, head_r // 8), (40, 40, 40), -1,
-               cv2.LINE_AA)
-    cv2.circle(canvas, (head_c[0] + eye_dx, eye_y), max(2, head_r // 8), (40, 40, 40), -1,
-               cv2.LINE_AA)
-    cv2.ellipse(canvas, (head_c[0], head_c[1] + int(head_r * 0.35)),
-                (int(head_r * 0.35), int(head_r * 0.18)), 0, 0, 180, (60, 60, 80), 2,
-                cv2.LINE_AA)
-    cv2.ellipse(canvas, (head_c[0], head_c[1] - int(head_r * 0.35)),
-                (head_r, int(head_r * 0.75)), 0, 180, 360, (55, 45, 40), -1, cv2.LINE_AA)
+    cv2.circle(
+        canvas, (head_c[0] - eye_dx, eye_y), max(2, head_r // 8), (40, 40, 40), -1, cv2.LINE_AA
+    )
+    cv2.circle(
+        canvas, (head_c[0] + eye_dx, eye_y), max(2, head_r // 8), (40, 40, 40), -1, cv2.LINE_AA
+    )
+    cv2.ellipse(
+        canvas,
+        (head_c[0], head_c[1] + int(head_r * 0.35)),
+        (int(head_r * 0.35), int(head_r * 0.18)),
+        0,
+        0,
+        180,
+        (60, 60, 80),
+        2,
+        cv2.LINE_AA,
+    )
+    cv2.ellipse(
+        canvas,
+        (head_c[0], head_c[1] - int(head_r * 0.35)),
+        (head_r, int(head_r * 0.75)),
+        0,
+        180,
+        360,
+        (55, 45, 40),
+        -1,
+        cv2.LINE_AA,
+    )
 
     return canvas
 

@@ -1,4 +1,5 @@
 """PostconditionExtractor: extracts state changes at segment end."""
+
 from __future__ import annotations
 
 import logging
@@ -7,11 +8,7 @@ from typing import Dict, List, Optional
 
 from ..utils.timeline import (
     ActionSegment,
-    Containment,
-    InteractionState,
-    MotionState,
     ObjectState,
-    SupportRelation,
     Timeline,
 )
 
@@ -21,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StateChange:
     """A change in a single state dimension."""
+
     dimension: str  # "support_relation", "motion_state", etc.
     from_value: str
     to_value: str
@@ -29,6 +27,7 @@ class StateChange:
 @dataclass
 class ObjectPostcondition:
     """State changes for an object after an action."""
+
     object_id: int
     final_state: Optional[ObjectState] = None
     changes: List[StateChange] = field(default_factory=list)
@@ -59,6 +58,7 @@ class ObjectPostcondition:
 @dataclass
 class SegmentPostconditions:
     """Postconditions (state changes) for an action segment."""
+
     seg_id: int
     object_postconditions: List[ObjectPostcondition] = field(default_factory=list)
 
@@ -180,32 +180,40 @@ class PostconditionExtractor:
         changes = []
 
         if start_state.support_relation != end_state.support_relation:
-            changes.append(StateChange(
-                dimension="support_relation",
-                from_value=start_state.support_relation.value,
-                to_value=end_state.support_relation.value,
-            ))
+            changes.append(
+                StateChange(
+                    dimension="support_relation",
+                    from_value=start_state.support_relation.value,
+                    to_value=end_state.support_relation.value,
+                )
+            )
 
         if start_state.motion_state != end_state.motion_state:
-            changes.append(StateChange(
-                dimension="motion_state",
-                from_value=start_state.motion_state.value,
-                to_value=end_state.motion_state.value,
-            ))
+            changes.append(
+                StateChange(
+                    dimension="motion_state",
+                    from_value=start_state.motion_state.value,
+                    to_value=end_state.motion_state.value,
+                )
+            )
 
         if start_state.interaction_state != end_state.interaction_state:
-            changes.append(StateChange(
-                dimension="interaction_state",
-                from_value=start_state.interaction_state.value,
-                to_value=end_state.interaction_state.value,
-            ))
+            changes.append(
+                StateChange(
+                    dimension="interaction_state",
+                    from_value=start_state.interaction_state.value,
+                    to_value=end_state.interaction_state.value,
+                )
+            )
 
         if start_state.containment != end_state.containment:
-            changes.append(StateChange(
-                dimension="containment",
-                from_value=start_state.containment.value,
-                to_value=end_state.containment.value,
-            ))
+            changes.append(
+                StateChange(
+                    dimension="containment",
+                    from_value=start_state.containment.value,
+                    to_value=end_state.containment.value,
+                )
+            )
 
         return changes
 
@@ -224,10 +232,7 @@ class PostconditionExtractor:
             Dictionary mapping object_id to list of StateChange.
         """
         postconds = self._extract_segment_postconditions(segment, timeline)
-        return {
-            p.object_id: p.changes
-            for p in postconds.object_postconditions
-        }
+        return {p.object_id: p.changes for p in postconds.object_postconditions}
 
     def get_final_states(
         self,

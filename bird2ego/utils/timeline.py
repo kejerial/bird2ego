@@ -2,6 +2,7 @@
 
 All modules reference the same timestamps for consistency.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -50,8 +51,10 @@ SENTINEL_CONF: float = 0.0
 # Enums for object states
 # ---------------------------------------------------------------------------
 
+
 class SupportRelation(str, Enum):
     """Where the object is supported."""
+
     HAND = "hand"
     TABLE = "table"
     FIXTURE = "fixture"
@@ -60,12 +63,14 @@ class SupportRelation(str, Enum):
 
 class MotionState(str, Enum):
     """Whether the object is moving."""
+
     STATIC = "static"
     MOVING = "moving"
 
 
 class InteractionState(str, Enum):
     """Interaction state of an object."""
+
     IN_CONTACT = "in_contact"
     GRASPED = "grasped"
     NONE = "none"
@@ -73,6 +78,7 @@ class InteractionState(str, Enum):
 
 class Containment(str, Enum):
     """Containment state of an object."""
+
     IN_BIN = "in_bin"
     IN_BOX = "in_box"
     NONE = "none"
@@ -81,6 +87,7 @@ class Containment(str, Enum):
 
 class HandSide(str, Enum):
     """Which hand."""
+
     LEFT = "left"
     RIGHT = "right"
 
@@ -89,9 +96,11 @@ class HandSide(str, Enum):
 # Frame metadata
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FrameInfo:
     """Metadata for a single frame."""
+
     frame_idx: int
     t: float  # timestamp in seconds
     width: int
@@ -102,9 +111,11 @@ class FrameInfo:
 # Pose data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PoseFrame:
     """Pose data for a single frame."""
+
     frame_idx: int
     bbox_xyxy: List[float]  # [x1, y1, x2, y2] or SENTINEL_BBOX
     keypoints_2d_px: List[List[float]]  # (17, 2)
@@ -123,6 +134,7 @@ class PoseFrame:
 @dataclass
 class PersonPose:
     """Time-series pose data for a single person."""
+
     skeleton_type: str = "COCO17"
     joint_names: List[str] = field(default_factory=lambda: COCO17_JOINT_NAMES.copy())
     root_joint_index: int = -1  # virtual root
@@ -166,9 +178,11 @@ class PersonPose:
 # Object tracking data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ObjectState:
     """State of an object at a single frame."""
+
     support_relation: SupportRelation = SupportRelation.UNKNOWN
     motion_state: MotionState = MotionState.STATIC
     interaction_state: InteractionState = InteractionState.NONE
@@ -178,6 +192,7 @@ class ObjectState:
 @dataclass
 class ObjectFrame:
     """Object data for a single frame."""
+
     frame_idx: int
     bbox_xyxy: List[float]  # [x1, y1, x2, y2] or SENTINEL_BBOX
     conf: float
@@ -187,6 +202,7 @@ class ObjectFrame:
 @dataclass
 class ObjectTrack:
     """Time-series track for a single object."""
+
     object_id: int
     class_name: str
     class_id: int
@@ -209,9 +225,11 @@ class ObjectTrack:
 # Hand pose data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HandFrame:
     """Hand data for a single frame."""
+
     frame_idx: int
     handedness: str  # "Left" or "Right"
     landmarks_2d: List[List[float]]  # (21, 2) pixel coordinates
@@ -224,24 +242,25 @@ class HandFrame:
 @dataclass
 class HandPose:
     """Time-series hand data for a single hand."""
+
     handedness: str  # "Left" or "Right"
     frames: List[HandFrame] = field(default_factory=list)
-    
+
     @property
     def num_frames(self) -> int:
         return len(self.frames)
-    
+
     def get_frame_indices(self) -> List[int]:
         return [f.frame_idx for f in self.frames]
-    
+
     def get_landmarks_2d_array(self) -> np.ndarray:
         """Return (T, 21, 2) array of 2D landmarks."""
         return np.array([f.landmarks_2d for f in self.frames], dtype=np.float32)
-    
+
     def get_landmarks_3d_array(self) -> np.ndarray:
         """Return (T, 21, 3) array of 3D landmarks."""
         return np.array([f.landmarks_3d for f in self.frames], dtype=np.float32)
-    
+
     def get_conf_array(self) -> np.ndarray:
         """Return (T, 21) array of confidences."""
         return np.array([f.conf for f in self.frames], dtype=np.float32)
@@ -251,9 +270,11 @@ class HandPose:
 # Contact events
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ContactEvent:
     """A contact event between hand and object."""
+
     event_id: int
     event_type: str  # "contact"
     t_start: float
@@ -271,9 +292,11 @@ class ContactEvent:
 # Action segments
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ActionSegment:
     """An action segment with start/end times."""
+
     seg_id: int
     t_start: float
     t_end: float
@@ -289,12 +312,14 @@ class ActionSegment:
 # Main Timeline Container
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Timeline:
     """Canonical timeline container shared across all modules.
 
     All data is aligned to the same frame indices and timestamps.
     """
+
     # Video metadata
     fps_extracted: float = 30.0
     t0: float = 0.0
@@ -381,9 +406,7 @@ class Timeline:
         for obj_id, track in self.objects.items():
             obj_T = track.num_frames
             if obj_T != T:
-                warnings.append(
-                    f"Object {obj_id} has {obj_T} frames, expected {T}"
-                )
+                warnings.append(f"Object {obj_id} has {obj_T} frames, expected {T}")
 
         return warnings
 
@@ -391,6 +414,7 @@ class Timeline:
 # ---------------------------------------------------------------------------
 # Factory functions
 # ---------------------------------------------------------------------------
+
 
 def create_empty_timeline(
     num_frames: int,
@@ -465,6 +489,7 @@ def create_empty_object_track(
 # Utility functions
 # ---------------------------------------------------------------------------
 
+
 def is_joint_usable(
     joint_in_frame: bool,
     conf: float,
@@ -503,10 +528,18 @@ def compute_virtual_root(
         conf = (conf_2d[left_hip_idx] + conf_2d[right_hip_idx]) / 2
         return (x, y, conf, True)
     elif left_valid:
-        return (keypoints_2d[left_hip_idx][0], keypoints_2d[left_hip_idx][1],
-                conf_2d[left_hip_idx], True)
+        return (
+            keypoints_2d[left_hip_idx][0],
+            keypoints_2d[left_hip_idx][1],
+            conf_2d[left_hip_idx],
+            True,
+        )
     elif right_valid:
-        return (keypoints_2d[right_hip_idx][0], keypoints_2d[right_hip_idx][1],
-                conf_2d[right_hip_idx], True)
+        return (
+            keypoints_2d[right_hip_idx][0],
+            keypoints_2d[right_hip_idx][1],
+            conf_2d[right_hip_idx],
+            True,
+        )
     else:
         return (0.0, 0.0, 0.0, False)

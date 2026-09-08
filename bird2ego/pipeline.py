@@ -1,13 +1,12 @@
 """Main pipeline orchestrator for video processing."""
+
 from __future__ import annotations
 
 import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
-
-import numpy as np
+from typing import Dict, Optional
 
 from .actions import (
     ActionClassifier,
@@ -16,18 +15,18 @@ from .actions import (
     SkillBoundaryConfig,
     SkillBoundaryDetector,
 )
-from .egocentric import (
-    EgocentricStage,
-    EgocentricTimeSeries,
-    export_egocentric_json,
-    summarize_series,
-)
 from .contact import (
     ContactDetector,
     ContactDetectorConfig,
     EventExtractor,
     InteractionClassifier,
     InteractionClassifierConfig,
+)
+from .egocentric import (
+    EgocentricStage,
+    EgocentricTimeSeries,
+    export_egocentric_json,
+    summarize_series,
 )
 from .graph import (
     OrderingInferencer,
@@ -288,9 +287,7 @@ class PipelineOrchestrator:
         # Step 5: Pose estimation
         logger.info("Step 5: Estimating poses...")
         pose_frames = self.pose_estimator_2d.estimate_video(frames)
-        pose_frames = self.pose_lifter_3d.lift_video(
-            pose_frames, (metadata.width, metadata.height)
-        )
+        pose_frames = self.pose_lifter_3d.lift_video(pose_frames, (metadata.width, metadata.height))
         pose_frames = self.pose_tracker.smooth_poses(pose_frames)
 
         person_pose = PersonPose(frames=pose_frames)
@@ -299,18 +296,16 @@ class PipelineOrchestrator:
 
         # Step 6: Contact detection
         logger.info("Step 6: Detecting contacts...")
-        contacts_per_frame = self.contact_detector.detect_video(
-            person_pose, timeline.objects
-        )
-        contact_frames = self.contact_detector.get_contact_frames_per_object(
-            contacts_per_frame
-        )
+        contacts_per_frame = self.contact_detector.detect_video(person_pose, timeline.objects)
+        contact_frames = self.contact_detector.get_contact_frames_per_object(contacts_per_frame)
         logger.info(f"  Detected contacts for {len(contact_frames)} objects")
 
         # Step 7: Interaction classification
         logger.info("Step 7: Classifying interactions...")
         classified_interactions = self.interaction_classifier.classify_interactions(
-            contacts_per_frame, person_pose, timeline.objects,
+            contacts_per_frame,
+            person_pose,
+            timeline.objects,
             fps=self.config.video.target_fps or 30.0,
         )
         logger.info(f"  Classified {len(classified_interactions)} interactions")
@@ -349,12 +344,8 @@ class PipelineOrchestrator:
         edges = self.ordering_inferencer.infer_edges(
             segments, preconditions, postconditions, timeline
         )
-        graph = self.task_graph_builder.build(
-            segments, edges, preconditions, postconditions
-        )
-        logger.info(
-            f"  Graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges"
-        )
+        graph = self.task_graph_builder.build(segments, edges, preconditions, postconditions)
+        logger.info(f"  Graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
 
         # Step 13: Egocentric transform
         ego_series: Optional[EgocentricTimeSeries] = None
@@ -381,9 +372,7 @@ class PipelineOrchestrator:
 
         # Step 15: Export outputs
         logger.info("Step 15: Exporting outputs...")
-        output_paths = self._export_outputs(
-            timeline, output_dir, run_id, ego_series
-        )
+        output_paths = self._export_outputs(timeline, output_dir, run_id, ego_series)
 
         elapsed = time.time() - start_time
         logger.info(f"Pipeline completed in {elapsed:.2f}s")
@@ -445,9 +434,7 @@ class PipelineOrchestrator:
 
         # Export egocentric outputs
         if ego_series is not None:
-            paths.update(
-                self._export_egocentric(ego_series, timeline, output_path, run_id)
-            )
+            paths.update(self._export_egocentric(ego_series, timeline, output_path, run_id))
 
         logger.info(f"Exported {len(paths)} output files to {output_path}")
         return paths
@@ -493,9 +480,7 @@ class PipelineOrchestrator:
                         "frame_start": seg.frame_start,
                         "frame_end": seg.frame_end,
                         "action": seg.label,
-                        "object_id": (
-                            seg.objects_involved[0] if seg.objects_involved else None
-                        ),
+                        "object_id": (seg.objects_involved[0] if seg.objects_involved else None),
                     }
                     for seg in timeline.segments
                 ],
@@ -504,9 +489,7 @@ class PipelineOrchestrator:
             paths["egocentric"] = str(ego_json)
 
         if cfg.render and self.egocentric_stage is not None:
-            object_classes = {
-                oid: track.class_name for oid, track in timeline.objects.items()
-            }
+            object_classes = {oid: track.class_name for oid, track in timeline.objects.items()}
             rendered = self.egocentric_stage.render_video(
                 ego_series,
                 str(output_path / "egocentric.mp4"),

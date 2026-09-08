@@ -1,4 +1,5 @@
 """StateClassifier: derives object states from tracks + motion + contacts."""
+
 from __future__ import annotations
 
 import logging
@@ -8,13 +9,13 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 from ..utils.timeline import (
+    SENTINEL_BBOX,
     Containment,
     InteractionState,
     MotionState,
     ObjectState,
     ObjectTrack,
     SupportRelation,
-    SENTINEL_BBOX,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StateClassifierConfig:
     """Configuration for state classification."""
+
     motion_threshold: float = 5.0  # pixels per frame
     motion_window: int = 3  # frames for motion averaging
     hand_contact_distance: float = 50.0  # pixels
@@ -98,14 +100,14 @@ class StateClassifier:
 
                 # Check if in contact or grasped
                 is_contact = (
-                    contact_frames is not None and
-                    obj_id in contact_frames and
-                    t in contact_frames[obj_id]
+                    contact_frames is not None
+                    and obj_id in contact_frames
+                    and t in contact_frames[obj_id]
                 )
                 is_grasped = (
-                    grasp_frames is not None and
-                    obj_id in grasp_frames and
-                    t in grasp_frames[obj_id]
+                    grasp_frames is not None
+                    and obj_id in grasp_frames
+                    and t in grasp_frames[obj_id]
                 )
 
                 # Update interaction state
@@ -119,14 +121,10 @@ class StateClassifier:
 
                 # Classify support relation if not grasped
                 if not is_grasped:
-                    frame.state.support_relation = self._classify_support(
-                        track, t, object_tracks
-                    )
+                    frame.state.support_relation = self._classify_support(track, t, object_tracks)
 
                 # Classify containment
-                frame.state.containment = self._classify_containment(
-                    track, t, object_tracks
-                )
+                frame.state.containment = self._classify_containment(track, t, object_tracks)
 
         return object_tracks
 
@@ -217,8 +215,7 @@ class StateClassifier:
 
             other_bbox = other_frame.bbox_xyxy
             # Check if object is above fixture
-            if (other_bbox[0] < obj_cx < other_bbox[2] and
-                abs(obj_bottom - other_bbox[1]) < 20):
+            if other_bbox[0] < obj_cx < other_bbox[2] and abs(obj_bottom - other_bbox[1]) < 20:
                 return SupportRelation.FIXTURE
 
         # Default to table if object is in lower part of frame
@@ -263,8 +260,7 @@ class StateClassifier:
 
             other_bbox = other_frame.bbox_xyxy
             # Check if object center is inside container
-            if (other_bbox[0] < obj_cx < other_bbox[2] and
-                other_bbox[1] < obj_cy < other_bbox[3]):
+            if other_bbox[0] < obj_cx < other_bbox[2] and other_bbox[1] < obj_cy < other_bbox[3]:
                 if "bin" in other_track.class_name.lower():
                     return Containment.IN_BIN
                 else:

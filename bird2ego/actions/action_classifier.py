@@ -1,19 +1,15 @@
 """ActionClassifier: labels action segments based on event/state patterns."""
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 from ..utils.timeline import (
     ActionSegment,
     ContactEvent,
-    Containment,
-    InteractionState,
-    MotionState,
-    ObjectTrack,
-    SupportRelation,
     Timeline,
 )
 
@@ -22,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ActionLabel(str, Enum):
     """Standard action labels."""
+
     PICK = "pick"
     PLACE = "place"
     INSERT = "insert"
@@ -39,6 +36,7 @@ class ActionLabel(str, Enum):
 @dataclass
 class ActionClassifierConfig:
     """Configuration for action classification."""
+
     # Confidence thresholds
     high_conf_threshold: float = 0.8
     medium_conf_threshold: float = 0.5
@@ -138,8 +136,7 @@ class ActionClassifier:
         events = []
         for event in timeline.events:
             # Check overlap
-            if (event.frame_end >= segment.frame_start and
-                event.frame_start <= segment.frame_end):
+            if event.frame_end >= segment.frame_start and event.frame_start <= segment.frame_end:
                 events.append(event)
         return events
 
@@ -177,36 +174,44 @@ class ActionClassifier:
 
             # Check each state dimension
             if start_state.support_relation != end_state.support_relation:
-                changes.append({
-                    "object_id": obj_id,
-                    "type": "support_relation",
-                    "from": start_state.support_relation.value,
-                    "to": end_state.support_relation.value,
-                })
+                changes.append(
+                    {
+                        "object_id": obj_id,
+                        "type": "support_relation",
+                        "from": start_state.support_relation.value,
+                        "to": end_state.support_relation.value,
+                    }
+                )
 
             if start_state.motion_state != end_state.motion_state:
-                changes.append({
-                    "object_id": obj_id,
-                    "type": "motion_state",
-                    "from": start_state.motion_state.value,
-                    "to": end_state.motion_state.value,
-                })
+                changes.append(
+                    {
+                        "object_id": obj_id,
+                        "type": "motion_state",
+                        "from": start_state.motion_state.value,
+                        "to": end_state.motion_state.value,
+                    }
+                )
 
             if start_state.containment != end_state.containment:
-                changes.append({
-                    "object_id": obj_id,
-                    "type": "containment",
-                    "from": start_state.containment.value,
-                    "to": end_state.containment.value,
-                })
+                changes.append(
+                    {
+                        "object_id": obj_id,
+                        "type": "containment",
+                        "from": start_state.containment.value,
+                        "to": end_state.containment.value,
+                    }
+                )
 
             if start_state.interaction_state != end_state.interaction_state:
-                changes.append({
-                    "object_id": obj_id,
-                    "type": "interaction_state",
-                    "from": start_state.interaction_state.value,
-                    "to": end_state.interaction_state.value,
-                })
+                changes.append(
+                    {
+                        "object_id": obj_id,
+                        "type": "interaction_state",
+                        "from": start_state.interaction_state.value,
+                        "to": end_state.interaction_state.value,
+                    }
+                )
 
         return changes
 
@@ -237,15 +242,13 @@ class ActionClassifier:
         # Rule 1: PICK - grasp event + support changes from table/fixture to hand
         if "grasp" in event_labels:
             for sc in support_changes:
-                if (sc["from"] in ["table", "fixture", "unknown"] and
-                    sc["to"] == "hand"):
+                if sc["from"] in ["table", "fixture", "unknown"] and sc["to"] == "hand":
                     return ActionLabel.PICK, 0.9
 
         # Rule 2: PLACE - grasp ends + support changes from hand to table/fixture
         if "grasp" in event_labels:
             for sc in support_changes:
-                if (sc["from"] == "hand" and
-                    sc["to"] in ["table", "fixture"]):
+                if sc["from"] == "hand" and sc["to"] in ["table", "fixture"]:
                     return ActionLabel.PLACE, 0.9
 
         # Rule 3: INSERT - containment changes to in_bin/in_box

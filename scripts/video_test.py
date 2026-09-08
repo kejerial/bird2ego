@@ -1,32 +1,29 @@
 #!/usr/bin/env python
 """Video file test bench for step-by-step visualization of pipeline."""
+
 from __future__ import annotations
 
 import argparse
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import cv2
 import numpy as np
 
-from bird2ego.pose import PoseEstimator2D, PoseLifter3D, PoseTracker, SmoothingMethod
+from bird2ego.actions import ActionClassifier, ActionSegmenter
+from bird2ego.contact import ContactDetector, InteractionClassifier
 from bird2ego.objects import ObjectDetector, ObjectTracker, StateClassifier, TrajectoryBuilder
-from bird2ego.contact import ContactDetector, ContactDetectorConfig, InteractionClassifier
-from bird2ego.actions import ActionSegmenter, ActionClassifier
+from bird2ego.pose import PoseEstimator2D, PoseLifter3D, PoseTracker, SmoothingMethod
 from bird2ego.utils.timeline import (
-    COCO17_JOINT_NAMES,
     JOINT_IDX,
     NUM_JOINTS,
     SENTINEL_2D,
     SENTINEL_BBOX,
     PersonPose,
-    Timeline,
-    create_empty_timeline,
 )
-from bird2ego.video import VideoLoader, TemporalAlignment
-
+from bird2ego.video import TemporalAlignment, VideoLoader
 
 # Colors for visualization (BGR)
 COLORS = {
@@ -41,15 +38,22 @@ COLORS = {
 }
 
 SKELETON_CONNECTIONS = [
-    ("nose", "left_eye"), ("nose", "right_eye"),
-    ("left_eye", "left_ear"), ("right_eye", "right_ear"),
+    ("nose", "left_eye"),
+    ("nose", "right_eye"),
+    ("left_eye", "left_ear"),
+    ("right_eye", "right_ear"),
     ("left_shoulder", "right_shoulder"),
-    ("left_shoulder", "left_hip"), ("right_shoulder", "right_hip"),
+    ("left_shoulder", "left_hip"),
+    ("right_shoulder", "right_hip"),
     ("left_hip", "right_hip"),
-    ("left_shoulder", "left_elbow"), ("left_elbow", "left_wrist"),
-    ("right_shoulder", "right_elbow"), ("right_elbow", "right_wrist"),
-    ("left_hip", "left_knee"), ("left_knee", "left_ankle"),
-    ("right_hip", "right_knee"), ("right_knee", "right_ankle"),
+    ("left_shoulder", "left_elbow"),
+    ("left_elbow", "left_wrist"),
+    ("right_shoulder", "right_elbow"),
+    ("right_elbow", "right_wrist"),
+    ("left_hip", "left_knee"),
+    ("left_knee", "left_ankle"),
+    ("right_hip", "right_knee"),
+    ("right_knee", "right_ankle"),
 ]
 
 
@@ -220,9 +224,15 @@ class VideoTestBench:
 
             # Add playback info
             status = "PLAYING" if playing else "PAUSED"
-            cv2.putText(vis_frame, f"[{status}] Frame {current_frame}/{len(self.frames)-1}",
-                       (10, vis_frame.shape[0] - 10),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            cv2.putText(
+                vis_frame,
+                f"[{status}] Frame {current_frame}/{len(self.frames) - 1}",
+                (10, vis_frame.shape[0] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),
+                1,
+            )
 
             cv2.imshow("Video Test Bench", vis_frame)
 
@@ -230,9 +240,9 @@ class VideoTestBench:
             wait_time = 1 if not playing else int(1000 / playback_fps)
             key = cv2.waitKey(wait_time) & 0xFF
 
-            if key == ord('q') or key == 27:
+            if key == ord("q") or key == 27:
                 break
-            elif key == ord(' '):
+            elif key == ord(" "):
                 playing = not playing
             elif key == 81 or key == 2424832:  # LEFT
                 playing = False
@@ -246,15 +256,15 @@ class VideoTestBench:
             elif key == 87 or key == 2293760:  # END
                 playing = False
                 current_frame = len(self.frames) - 1
-            elif key == ord('p'):
+            elif key == ord("p"):
                 self.show_pose = not self.show_pose
-            elif key == ord('o'):
+            elif key == ord("o"):
                 self.show_objects = not self.show_objects
-            elif key == ord('c'):
+            elif key == ord("c"):
                 self.show_contacts = not self.show_contacts
-            elif key == ord('a'):
+            elif key == ord("a"):
                 self.show_actions = not self.show_actions
-            elif key == ord('s'):
+            elif key == ord("s"):
                 filename = f"frame_{current_frame:05d}.png"
                 cv2.imwrite(filename, vis_frame)
                 print(f"Saved: {filename}")
@@ -289,10 +299,24 @@ class VideoTestBench:
                         state = obj_frame.state
                         label = f"#{obj_id} {track.class_name}"
                         state_str = f"{state.motion_state.value}"
-                        cv2.putText(frame, label, (pt1[0], pt1[1] - 20),
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, COLORS["bbox_object"], 1)
-                        cv2.putText(frame, state_str, (pt1[0], pt1[1] - 5),
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.3, COLORS["bbox_object"], 1)
+                        cv2.putText(
+                            frame,
+                            label,
+                            (pt1[0], pt1[1] - 20),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.4,
+                            COLORS["bbox_object"],
+                            1,
+                        )
+                        cv2.putText(
+                            frame,
+                            state_str,
+                            (pt1[0], pt1[1] - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.3,
+                            COLORS["bbox_object"],
+                            1,
+                        )
 
         # Draw pose
         if self.show_pose and frame_idx < len(self.pose_frames):
@@ -303,8 +327,12 @@ class VideoTestBench:
             # Skeleton
             for j1_name, j2_name in SKELETON_CONNECTIONS:
                 idx1, idx2 = JOINT_IDX[j1_name], JOINT_IDX[j2_name]
-                if (keypoints[idx1] != SENTINEL_2D and keypoints[idx2] != SENTINEL_2D and
-                    conf[idx1] > 0.2 and conf[idx2] > 0.2):
+                if (
+                    keypoints[idx1] != SENTINEL_2D
+                    and keypoints[idx2] != SENTINEL_2D
+                    and conf[idx1] > 0.2
+                    and conf[idx2] > 0.2
+                ):
                     pt1 = (int(keypoints[idx1][0]), int(keypoints[idx1][1]))
                     pt2 = (int(keypoints[idx2][0]), int(keypoints[idx2][1]))
                     cv2.line(frame, pt1, pt2, COLORS["pose_line"], 2)
@@ -336,21 +364,43 @@ class VideoTestBench:
             if current_segment:
                 # Draw segment bar at bottom
                 h = frame.shape[0]
-                progress = (frame_idx - current_segment.frame_start) / max(1, current_segment.frame_end - current_segment.frame_start)
+                progress = (frame_idx - current_segment.frame_start) / max(
+                    1, current_segment.frame_end - current_segment.frame_start
+                )
                 bar_width = int(frame.shape[1] * 0.3)
                 bar_x = frame.shape[1] - bar_width - 10
                 cv2.rectangle(frame, (bar_x, h - 40), (bar_x + bar_width, h - 20), (50, 50, 50), -1)
-                cv2.rectangle(frame, (bar_x, h - 40), (bar_x + int(bar_width * progress), h - 20), COLORS["segment"], -1)
+                cv2.rectangle(
+                    frame,
+                    (bar_x, h - 40),
+                    (bar_x + int(bar_width * progress), h - 20),
+                    COLORS["segment"],
+                    -1,
+                )
 
                 # Label
                 label = f"Action: {current_segment.label} ({current_segment.conf:.2f})"
-                cv2.putText(frame, label, (bar_x, h - 45),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS["segment"], 1)
+                cv2.putText(
+                    frame,
+                    label,
+                    (bar_x, h - 45),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    COLORS["segment"],
+                    1,
+                )
 
         # Info overlay
         info_y = 20
-        cv2.putText(frame, f"Time: {self.timestamps[frame_idx]:.2f}s", (10, info_y),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS["text"], 1)
+        cv2.putText(
+            frame,
+            f"Time: {self.timestamps[frame_idx]:.2f}s",
+            (10, info_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            COLORS["text"],
+            1,
+        )
 
         return frame
 
@@ -363,7 +413,7 @@ class VideoTestBench:
         """
         print(f"Exporting video to {output_path}...")
 
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(
             output_path,
             fourcc,

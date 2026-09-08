@@ -1,4 +1,5 @@
 """Action segmentation and skill labeling."""
+
 from .action_classifier import ActionClassifier, ActionClassifierConfig, ActionLabel
 from .action_segmenter import (
     ActionSegmenter,

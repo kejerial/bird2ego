@@ -4,6 +4,7 @@
 Puts the source video beside the egocentric render the pipeline wrote, so the
 GIF shows real pipeline output rather than a mock-up.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -38,7 +39,13 @@ def add_label(image: np.ndarray, text: str) -> np.ndarray:
     """Draw a caption bar across the top of an image."""
     cv2.rectangle(image, (0, 0), (image.shape[1], 22), (20, 20, 20), -1)
     cv2.putText(
-        image, text, (8, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (235, 235, 235), 1,
+        image,
+        text,
+        (8, 16),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (235, 235, 235),
+        1,
         cv2.LINE_AA,
     )
     return image
@@ -70,9 +77,7 @@ def main() -> int:
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    imageio.mimsave(
-        out, frames, format="GIF", duration=args.stride / args.fps, loop=0
-    )
+    imageio.mimsave(out, frames, format="GIF", duration=args.stride / args.fps, loop=0)
 
     print(f"Wrote {len(frames)} frames to {out} ({out.stat().st_size / 1024:.0f} KB)")
     return 0

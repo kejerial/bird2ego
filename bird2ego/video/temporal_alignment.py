@@ -1,4 +1,5 @@
 """TemporalAlignment: ensures consistent timestamps and frame indexing."""
+
 from __future__ import annotations
 
 import logging
@@ -130,8 +131,7 @@ class TemporalAlignment:
                     dt = 1.0 / 30.0  # Default to 30fps if first pair
                 fixed[i] = fixed[i - 1] + dt
                 logger.warning(
-                    f"Fixed non-monotonic timestamp at frame {i}: "
-                    f"{ts[i]:.6f} -> {fixed[i]:.6f}"
+                    f"Fixed non-monotonic timestamp at frame {i}: {ts[i]:.6f} -> {fixed[i]:.6f}"
                 )
             else:
                 fixed[i] = ts[i]
@@ -154,8 +154,7 @@ class TemporalAlignment:
         expected = list(range(timeline.num_frames))
         if indices != expected:
             warnings.append(
-                f"Frame indices not contiguous: got {indices[:5]}..., "
-                f"expected {expected[:5]}..."
+                f"Frame indices not contiguous: got {indices[:5]}..., expected {expected[:5]}..."
             )
 
         # Check timestamps are monotonic

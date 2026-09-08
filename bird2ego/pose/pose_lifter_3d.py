@@ -1,4 +1,5 @@
 """PoseLifter3D: lifts COCO17 2D to 3D root-relative coordinates."""
+
 from __future__ import annotations
 
 import logging
@@ -72,25 +73,28 @@ class StubPoseLifter3D(PoseLifter3DBase):
 
         # Typical depth offsets for each joint (relative to pelvis)
         # Positive Z = towards camera
-        self._depth_priors = np.array([
-            0.3,   # nose (forward)
-            0.35,  # left_eye
-            0.35,  # right_eye
-            0.25,  # left_ear
-            0.25,  # right_ear
-            0.0,   # left_shoulder
-            0.0,   # right_shoulder
-            0.1,   # left_elbow
-            -0.1,  # right_elbow
-            0.15,  # left_wrist
-            -0.15, # right_wrist
-            0.0,   # left_hip
-            0.0,   # right_hip
-            0.05,  # left_knee
-            -0.05, # right_knee
-            0.0,   # left_ankle
-            0.0,   # right_ankle
-        ], dtype=np.float32)
+        self._depth_priors = np.array(
+            [
+                0.3,  # nose (forward)
+                0.35,  # left_eye
+                0.35,  # right_eye
+                0.25,  # left_ear
+                0.25,  # right_ear
+                0.0,  # left_shoulder
+                0.0,  # right_shoulder
+                0.1,  # left_elbow
+                -0.1,  # right_elbow
+                0.15,  # left_wrist
+                -0.15,  # right_wrist
+                0.0,  # left_hip
+                0.0,  # right_hip
+                0.05,  # left_knee
+                -0.05,  # right_knee
+                0.0,  # left_ankle
+                0.0,  # right_ankle
+            ],
+            dtype=np.float32,
+        )
 
     def lift(
         self,
@@ -107,12 +111,8 @@ class StubPoseLifter3D(PoseLifter3DBase):
         # Compute virtual root (pelvis) as midpoint of hips
         left_hip = keypoints_2d[JOINT_IDX["left_hip"]]
         right_hip = keypoints_2d[JOINT_IDX["right_hip"]]
-        left_hip_valid = (
-            left_hip[0] != SENTINEL_2D[0] and conf_2d[JOINT_IDX["left_hip"]] > 0
-        )
-        right_hip_valid = (
-            right_hip[0] != SENTINEL_2D[0] and conf_2d[JOINT_IDX["right_hip"]] > 0
-        )
+        left_hip_valid = left_hip[0] != SENTINEL_2D[0] and conf_2d[JOINT_IDX["left_hip"]] > 0
+        right_hip_valid = right_hip[0] != SENTINEL_2D[0] and conf_2d[JOINT_IDX["right_hip"]] > 0
 
         if left_hip_valid and right_hip_valid:
             root_2d = (left_hip + right_hip) / 2
@@ -156,8 +156,7 @@ class StubPoseLifter3D(PoseLifter3DBase):
         # If root was valid, ensure it's at origin
         if root_valid:
             # Root is virtual, but hips should be near origin
-            hip_mean = (coords_3d[JOINT_IDX["left_hip"]] +
-                       coords_3d[JOINT_IDX["right_hip"]]) / 2
+            hip_mean = (coords_3d[JOINT_IDX["left_hip"]] + coords_3d[JOINT_IDX["right_hip"]]) / 2
             # Shift all coords so hip mean is at origin (xy only)
             for j in range(NUM_JOINTS):
                 if coords_3d[j][0] != SENTINEL_3D[0]:
@@ -249,13 +248,9 @@ class PoseLifter3D:
         if backend == "stub":
             self._lifter = StubPoseLifter3D(**kwargs)
         elif backend == "mediapipe_world":
-            self._lifter = MediaPipeWorldLifter(
-                min_confidence=min_confidence, **kwargs
-            )
+            self._lifter = MediaPipeWorldLifter(min_confidence=min_confidence, **kwargs)
         else:
-            raise ValueError(
-                f"Unknown backend: {backend}. Use 'stub' or 'mediapipe_world'"
-            )
+            raise ValueError(f"Unknown backend: {backend}. Use 'stub' or 'mediapipe_world'")
 
     def lift_frame(
         self,
@@ -279,9 +274,7 @@ class PoseLifter3D:
             else None
         )
 
-        coords_3d, conf_3d = self._lifter.lift(
-            keypoints_2d, conf_2d, image_size, world_coords_3d
-        )
+        coords_3d, conf_3d = self._lifter.lift(keypoints_2d, conf_2d, image_size, world_coords_3d)
 
         # Update pose frame with 3D data
         pose_frame.coords_3d = coords_3d.tolist()

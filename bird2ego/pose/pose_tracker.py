@@ -1,4 +1,5 @@
 """PoseTracker: temporal smoothing for 2D and 3D keypoints."""
+
 from __future__ import annotations
 
 import logging
@@ -8,13 +9,14 @@ from typing import List, Optional
 
 import numpy as np
 
-from ..utils.timeline import NUM_JOINTS, SENTINEL_2D, SENTINEL_3D, PoseFrame
+from ..utils.timeline import SENTINEL_2D, SENTINEL_3D, PoseFrame
 
 logger = logging.getLogger(__name__)
 
 
 class SmoothingMethod(str, Enum):
     """Smoothing method for temporal filtering."""
+
     NONE = "none"
     MOVING_AVERAGE = "moving_average"
     EXPONENTIAL = "exponential"
@@ -24,6 +26,7 @@ class SmoothingMethod(str, Enum):
 @dataclass
 class OneEuroParams:
     """Parameters for One Euro filter."""
+
     min_cutoff: float = 1.0
     beta: float = 0.007
     d_cutoff: float = 1.0
@@ -206,10 +209,9 @@ class PoseTracker:
 
         for j in range(J):
             # Check which frames have valid data
-            valid = np.array([
-                not np.allclose(data[t, j], sentinel_arr) and conf[t, j] > 0
-                for t in range(T)
-            ])
+            valid = np.array(
+                [not np.allclose(data[t, j], sentinel_arr) and conf[t, j] > 0 for t in range(T)]
+            )
 
             if not np.any(valid):
                 continue
@@ -232,9 +234,7 @@ class PoseTracker:
 
         return smoothed
 
-    def _interpolate_gaps(
-        self, data: np.ndarray, valid: np.ndarray
-    ) -> np.ndarray:
+    def _interpolate_gaps(self, data: np.ndarray, valid: np.ndarray) -> np.ndarray:
         """Interpolate over short gaps in data.
 
         Args:
@@ -293,9 +293,7 @@ class PoseTracker:
 
         return gap_len <= self.max_gap_frames and has_left and has_right
 
-    def _moving_average(
-        self, data: np.ndarray, valid: np.ndarray
-    ) -> np.ndarray:
+    def _moving_average(self, data: np.ndarray, valid: np.ndarray) -> np.ndarray:
         """Apply moving average smoothing."""
         T = len(data)
         result = data.copy()
@@ -312,9 +310,7 @@ class PoseTracker:
 
         return result
 
-    def _exponential_smooth(
-        self, data: np.ndarray, valid: np.ndarray
-    ) -> np.ndarray:
+    def _exponential_smooth(self, data: np.ndarray, valid: np.ndarray) -> np.ndarray:
         """Apply exponential smoothing."""
         T = len(data)
         result = data.copy()
@@ -331,9 +327,7 @@ class PoseTracker:
 
         return result
 
-    def _one_euro_smooth(
-        self, data: np.ndarray, valid: np.ndarray, dim: int
-    ) -> np.ndarray:
+    def _one_euro_smooth(self, data: np.ndarray, valid: np.ndarray, dim: int) -> np.ndarray:
         """Apply One Euro filter smoothing."""
         T = len(data)
         result = data.copy()

@@ -1,4 +1,5 @@
 """Tests for the egocentric transform and the egocentric pipeline stage."""
+
 import json
 import sys
 from pathlib import Path
@@ -70,16 +71,12 @@ class TestEgocentricTransform:
     @staticmethod
     def _transformer() -> EgocentricTransformer:
         """A transformer with no gaze tilt and no eye offset."""
-        return EgocentricTransformer(
-            eye_offset_forward=0.0, default_gaze_down_angle=0.0
-        )
+        return EgocentricTransformer(eye_offset_forward=0.0, default_gaze_down_angle=0.0)
 
     def test_head_frame_for_subject_facing_plus_z(self):
         """A subject facing +z gets the identity rotation."""
         coords, conf = make_pose("plus_z")
-        eye, forward, up, right, head_conf = self._transformer().estimate_head_pose(
-            coords, conf
-        )
+        eye, forward, up, right, head_conf = self._transformer().estimate_head_pose(coords, conf)
 
         assert np.allclose(eye, [0.0, -HEAD_HEIGHT, 0.0], atol=1e-6)
         assert np.allclose(forward, [0.0, 0.0, 1.0], atol=1e-6)
@@ -225,9 +222,7 @@ def write_test_video(path: Path, num_frames: int = 12) -> None:
     sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
     from make_synthetic_video import draw_frame
 
-    writer = cv2.VideoWriter(
-        str(path), cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (320, 240)
-    )
+    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (320, 240))
     assert writer.isOpened()
     try:
         for i in range(num_frames):

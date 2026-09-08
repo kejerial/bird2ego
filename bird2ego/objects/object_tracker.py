@@ -1,8 +1,9 @@
 """ObjectTracker: tracks objects across frames."""
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TrackedObject:
     """A tracked object with history."""
+
     track_id: int
     class_id: int
     class_name: str
@@ -119,10 +121,7 @@ class IoUTracker:
 
     def get_active_tracks(self) -> Dict[int, TrackedObject]:
         """Get all active confirmed tracks."""
-        return {
-            tid: t for tid, t in self._tracks.items()
-            if t.hits >= self.min_hits
-        }
+        return {tid: t for tid, t in self._tracks.items() if t.hits >= self.min_hits}
 
     def _create_track(self, det: Detection, frame_idx: int) -> int:
         """Create a new track."""
@@ -173,9 +172,7 @@ class IoUTracker:
             for j, det in enumerate(detections):
                 # Only match same class
                 if track.class_id == det.class_id:
-                    iou_matrix[i, j] = self._compute_iou(
-                        track.last_bbox, det.bbox_xyxy
-                    )
+                    iou_matrix[i, j] = self._compute_iou(track.last_bbox, det.bbox_xyxy)
 
         return iou_matrix
 

@@ -1,4 +1,5 @@
 """EventExtractor: extracts contact events with onset/offset."""
+
 from __future__ import annotations
 
 import logging
@@ -6,8 +7,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from ..utils.timeline import ContactEvent, HandSide, Timeline
-
-from .contact_detector import ContactDetectorConfig, ContactFrame
+from .contact_detector import ContactFrame
 from .interaction_classifier import ClassifiedInteraction, InteractionLabel
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EventExtractorConfig:
     """Configuration for event extraction."""
+
     # Minimum event duration (frames)
     min_event_duration: int = 3
 
@@ -67,9 +68,12 @@ class EventExtractor:
 
         # Filter by confidence and duration
         filtered = [
-            ci for ci in classified_interactions
-            if (ci.confidence >= self.config.min_confidence and
-                ci.frame_end - ci.frame_start + 1 >= self.config.min_event_duration)
+            ci
+            for ci in classified_interactions
+            if (
+                ci.confidence >= self.config.min_confidence
+                and ci.frame_end - ci.frame_start + 1 >= self.config.min_event_duration
+            )
         ]
 
         # Merge nearby interactions of same type

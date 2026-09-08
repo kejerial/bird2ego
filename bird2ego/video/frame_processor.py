@@ -1,4 +1,5 @@
 """FrameProcessor: resize, letterbox, and normalize frames."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ResizePolicy(str, Enum):
     """How to resize frames."""
+
     NONE = "none"  # Keep original size
     RESIZE = "resize"  # Simple resize (may distort aspect ratio)
     LETTERBOX = "letterbox"  # Pad to maintain aspect ratio
@@ -23,6 +25,7 @@ class ResizePolicy(str, Enum):
 @dataclass
 class ProcessedFrame:
     """A processed frame with metadata."""
+
     frame: np.ndarray
     original_width: int
     original_height: int
@@ -91,9 +94,7 @@ class FrameProcessor:
         target_h = self.target_height or original_height
 
         if self.resize_policy == ResizePolicy.RESIZE:
-            processed, scale_x, scale_y, pad_left, pad_top = self._resize(
-                frame, target_w, target_h
-            )
+            processed, scale_x, scale_y, pad_left, pad_top = self._resize(frame, target_w, target_h)
         elif self.resize_policy == ResizePolicy.LETTERBOX:
             processed, scale_x, scale_y, pad_left, pad_top = self._letterbox(
                 frame, target_w, target_h
@@ -120,9 +121,7 @@ class FrameProcessor:
             pad_top=pad_top,
         )
 
-    def process_batch(
-        self, frames: List[np.ndarray]
-    ) -> Tuple[np.ndarray, List[ProcessedFrame]]:
+    def process_batch(self, frames: List[np.ndarray]) -> Tuple[np.ndarray, List[ProcessedFrame]]:
         """Process a batch of frames.
 
         Args:

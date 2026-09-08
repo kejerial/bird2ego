@@ -1,15 +1,15 @@
 """TaskGraphBuilder: builds NetworkX task graph from segments and edges."""
+
 from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import networkx as nx
 
 from ..utils.timeline import ActionSegment, Timeline
-from .ordering_inferencer import EdgeType, InferredEdge
+from .ordering_inferencer import InferredEdge
 from .postcondition_extractor import SegmentPostconditions
 from .precondition_extractor import SegmentPreconditions
 
@@ -240,7 +240,8 @@ class TaskGraphBuilder:
 
         # Create subgraph with only causal edges
         causal_edges = [
-            (u, v) for u, v in self._graph.edges()
+            (u, v)
+            for u, v in self._graph.edges()
             if self._graph.edges[u, v].get("edge_type") == "causal"
         ]
         causal_graph = self._graph.edge_subgraph(causal_edges)
@@ -278,8 +279,7 @@ class TaskGraphBuilder:
         # Check node count matches segment count
         if self._graph.number_of_nodes() != len(segments):
             warnings.append(
-                f"Node count ({self._graph.number_of_nodes()}) != "
-                f"segment count ({len(segments)})"
+                f"Node count ({self._graph.number_of_nodes()}) != segment count ({len(segments)})"
             )
 
         # Check all segment IDs are present

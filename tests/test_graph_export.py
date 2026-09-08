@@ -1,4 +1,5 @@
 """Tests for graph export validity."""
+
 import json
 import tempfile
 from pathlib import Path
@@ -7,13 +8,9 @@ import networkx as nx
 import pytest
 
 # Add src to path
-
 from bird2ego.graph import (
     EdgeType,
     InferredEdge,
-    OrderingInferencer,
-    PostconditionExtractor,
-    PreconditionExtractor,
     TaskGraphBuilder,
 )
 from bird2ego.output import GraphExporter
@@ -35,20 +32,31 @@ class TestTaskGraphBuilder:
         """Test building graph with segments."""
         segments = [
             ActionSegment(
-                seg_id=0, t_start=0.0, t_end=1.0,
-                frame_start=0, frame_end=30,
-                label="pick", conf=0.9, objects_involved=[1],
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+                objects_involved=[1],
             ),
             ActionSegment(
-                seg_id=1, t_start=1.0, t_end=2.0,
-                frame_start=30, frame_end=60,
-                label="place", conf=0.8, objects_involved=[1],
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+                objects_involved=[1],
             ),
         ]
 
         edges = [
             InferredEdge(
-                from_seg_id=0, to_seg_id=1,
+                from_seg_id=0,
+                to_seg_id=1,
                 edge_type=EdgeType.CAUSAL,
                 confidence=0.85,
                 evidence={"test": True},
@@ -65,9 +73,14 @@ class TestTaskGraphBuilder:
         """Test that nodes have correct attributes."""
         segments = [
             ActionSegment(
-                seg_id=0, t_start=0.0, t_end=1.0,
-                frame_start=0, frame_end=30,
-                label="pick", conf=0.9, objects_involved=[1, 2],
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+                objects_involved=[1, 2],
             ),
         ]
 
@@ -85,15 +98,30 @@ class TestTaskGraphBuilder:
     def test_edge_attributes(self):
         """Test that edges have correct attributes."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         edges = [
             InferredEdge(
-                from_seg_id=0, to_seg_id=1,
+                from_seg_id=0,
+                to_seg_id=1,
                 edge_type=EdgeType.CAUSAL,
                 confidence=0.85,
                 evidence={"reason": "test"},
@@ -115,15 +143,30 @@ class TestGraphExport:
     def test_export_json(self):
         """Test JSON export."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         edges = [
             InferredEdge(
-                from_seg_id=0, to_seg_id=1,
+                from_seg_id=0,
+                to_seg_id=1,
                 edge_type=EdgeType.TEMPORAL,
                 confidence=0.5,
                 evidence={},
@@ -152,8 +195,15 @@ class TestGraphExport:
     def test_export_graphml(self):
         """Test GraphML export."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
         ]
 
         builder = TaskGraphBuilder()
@@ -173,10 +223,24 @@ class TestGraphExport:
     def test_load_json(self):
         """Test loading graph from JSON."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         builder = TaskGraphBuilder()
@@ -214,16 +278,31 @@ class TestNodeCountEqualsSegments:
             builder = TaskGraphBuilder()
             graph = builder.build(segments, [])
 
-            assert graph.number_of_nodes() == len(segments), \
+            assert graph.number_of_nodes() == len(segments), (
                 f"Expected {len(segments)} nodes, got {graph.number_of_nodes()}"
+            )
 
     def test_validation_catches_mismatch(self):
         """Test that validation detects node count mismatch."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         builder = TaskGraphBuilder()
@@ -241,15 +320,30 @@ class TestEdgeTypes:
     def test_causal_edges(self):
         """Test causal edge creation."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         edges = [
             InferredEdge(
-                from_seg_id=0, to_seg_id=1,
+                from_seg_id=0,
+                to_seg_id=1,
                 edge_type=EdgeType.CAUSAL,
                 confidence=0.9,
                 evidence={},
@@ -265,15 +359,30 @@ class TestEdgeTypes:
     def test_temporal_edges(self):
         """Test temporal edge creation."""
         segments = [
-            ActionSegment(seg_id=0, t_start=0.0, t_end=1.0,
-                         frame_start=0, frame_end=30, label="pick", conf=0.9),
-            ActionSegment(seg_id=1, t_start=1.0, t_end=2.0,
-                         frame_start=30, frame_end=60, label="place", conf=0.8),
+            ActionSegment(
+                seg_id=0,
+                t_start=0.0,
+                t_end=1.0,
+                frame_start=0,
+                frame_end=30,
+                label="pick",
+                conf=0.9,
+            ),
+            ActionSegment(
+                seg_id=1,
+                t_start=1.0,
+                t_end=2.0,
+                frame_start=30,
+                frame_end=60,
+                label="place",
+                conf=0.8,
+            ),
         ]
 
         edges = [
             InferredEdge(
-                from_seg_id=0, to_seg_id=1,
+                from_seg_id=0,
+                to_seg_id=1,
                 edge_type=EdgeType.TEMPORAL,
                 confidence=0.5,
                 evidence={},

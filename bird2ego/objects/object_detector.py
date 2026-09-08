@@ -1,4 +1,5 @@
 """ObjectDetector: detects objects in frames."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Detection:
     """A single object detection."""
+
     bbox_xyxy: List[float]  # [x1, y1, x2, y2]
     class_id: int
     class_name: str
@@ -167,14 +169,16 @@ class StubObjectDetector(ObjectDetectorBase):
                 bw = width * (0.08 + 0.08 * self.rng.random())
                 bh = height * (0.08 + 0.12 * self.rng.random())
 
-            templates.append({
-                "cx": cx,
-                "cy": cy,
-                "bw": bw,
-                "bh": bh,
-                "class_id": class_id,
-                "class_name": class_name,
-            })
+            templates.append(
+                {
+                    "cx": cx,
+                    "cy": cy,
+                    "bw": bw,
+                    "bh": bh,
+                    "class_id": class_id,
+                    "class_name": class_name,
+                }
+            )
 
         return templates
 
@@ -203,6 +207,7 @@ class ObjectDetector:
             self._detector = StubObjectDetector(classes=classes, **kwargs)
         elif backend == "yolo":
             from .yolo_detector import YOLODetector
+
             # num_objects is a stub-only option; YOLO ignores it.
             kwargs.pop("num_objects", None)
             self._detector = YOLODetector(classes=classes, **kwargs)

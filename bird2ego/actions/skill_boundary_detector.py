@@ -1,4 +1,5 @@
 """SkillBoundaryDetector: merges and refines segment boundaries."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SkillBoundaryConfig:
     """Configuration for skill boundary detection."""
+
     # Minimum segment duration (frames)
     min_duration_frames: int = 10
 
@@ -128,7 +130,8 @@ class SkillBoundaryDetector:
             Filtered list of segments.
         """
         return [
-            seg for seg in segments
+            seg
+            for seg in segments
             if seg.frame_end - seg.frame_start + 1 >= self.config.min_duration_frames
         ]
 
@@ -182,7 +185,9 @@ class SkillBoundaryDetector:
                         frame_end=next_seg.frame_end,
                         label=next_seg.label,  # Use next label
                         conf=(seg.conf + next_seg.conf) / 2,
-                        objects_involved=list(set(seg.objects_involved + next_seg.objects_involved)),
+                        objects_involved=list(
+                            set(seg.objects_involved + next_seg.objects_involved)
+                        ),
                         evidence={**next_seg.evidence, "merged_with": seg.seg_id},
                     )
                 )
@@ -222,7 +227,9 @@ class SkillBoundaryDetector:
                 # Adjust to remove gap/overlap
                 mid = (curr.frame_end + next_seg.frame_start) // 2
                 segments[i].frame_end = mid
-                segments[i].t_end = segments[i].t_start + (mid - segments[i].frame_start) / 30.0  # Approximate
+                segments[i].t_end = (
+                    segments[i].t_start + (mid - segments[i].frame_start) / 30.0
+                )  # Approximate
                 segments[i + 1].frame_start = mid + 1
                 segments[i + 1].t_start = segments[i].t_end
 
@@ -242,7 +249,7 @@ class SkillBoundaryDetector:
         """
         while len(segments) > self.config.max_segments:
             # Find lowest confidence segment
-            min_conf = float('inf')
+            min_conf = float("inf")
             min_idx = 0
 
             for i, seg in enumerate(segments):
@@ -281,6 +288,6 @@ class SkillBoundaryDetector:
                 evidence={**seg1.evidence, "merged_for_limit": True},
             )
 
-            segments = segments[:idx1] + [merged] + segments[idx2 + 1:]
+            segments = segments[:idx1] + [merged] + segments[idx2 + 1 :]
 
         return segments

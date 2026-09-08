@@ -1,4 +1,5 @@
 """Task graph construction."""
+
 from .ordering_inferencer import EdgeType, InferredEdge, OrderingInferencer
 from .postcondition_extractor import (
     ObjectPostcondition,

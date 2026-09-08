@@ -3,10 +3,11 @@
 Transforms third-person camera footage into first-person (egocentric) representations
 suitable for VLA (Vision-Language-Action) training.
 """
-from .transformer import EgocentricTransformer, EgocentricFrame, EgocentricTimeSeries
+
+from .exporter import EgocentricRecorder, export_egocentric_json
 from .renderer import EgocentricRenderer
-from .exporter import export_egocentric_json, EgocentricRecorder
 from .stage import EgocentricStage, fit_image_to_pose_3d, summarize_series
+from .transformer import EgocentricFrame, EgocentricTimeSeries, EgocentricTransformer
 
 __all__ = [
     "EgocentricTransformer",

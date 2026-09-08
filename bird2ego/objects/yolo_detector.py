@@ -2,6 +2,7 @@
 
 Works from any camera angle.
 """
+
 from __future__ import annotations
 
 import logging
@@ -9,14 +10,14 @@ from typing import List, Optional
 
 import numpy as np
 
-from .object_detector import ObjectDetectorBase, Detection
+from .object_detector import Detection, ObjectDetectorBase
 
 logger = logging.getLogger(__name__)
 
 
 class YOLODetector(ObjectDetectorBase):
     """YOLO object detector using ultralytics.
-    
+
     Pre-trained on 80 COCO classes including:
     - person, bicycle, car, motorcycle, airplane, bus, train, truck, boat
     - traffic light, fire hydrant, stop sign, parking meter, bench
@@ -45,7 +46,7 @@ class YOLODetector(ObjectDetectorBase):
         Args:
             model_name: YOLO model to use. Options:
                 - "yolov8n.pt" (nano, fastest, 6MB)
-                - "yolov8s.pt" (small, fast, 22MB)  
+                - "yolov8s.pt" (small, fast, 22MB)
                 - "yolov8m.pt" (medium, balanced, 52MB)
                 - "yolov8l.pt" (large, accurate, 87MB)
                 - "yolov8x.pt" (xlarge, most accurate, 137MB)
@@ -56,17 +57,16 @@ class YOLODetector(ObjectDetectorBase):
             verbose: Show YOLO output logs.
         """
         from ultralytics import YOLO
-        
+
         self.model = YOLO(model_name)
         self.classes = classes
         self.device = device if device != "auto" else None  # None = auto
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.verbose = verbose
-        
+
         logger.info(
-            f"YOLO detector initialized: {model_name}, "
-            f"classes={classes or 'all'}, device={device}"
+            f"YOLO detector initialized: {model_name}, classes={classes or 'all'}, device={device}"
         )
 
     def detect(self, frame: np.ndarray) -> List[Detection]:
@@ -87,7 +87,7 @@ class YOLODetector(ObjectDetectorBase):
             iou=self.iou_threshold,
             verbose=self.verbose,
         )
-        
+
         detections = []
         for r in results:
             boxes = r.boxes
@@ -96,7 +96,7 @@ class YOLODetector(ObjectDetectorBase):
                 conf = float(boxes.conf[i])
                 cls_id = int(boxes.cls[i])
                 cls_name = self.model.names[cls_id]
-                
+
                 detections.append(
                     Detection(
                         bbox_xyxy=bbox,
@@ -105,7 +105,7 @@ class YOLODetector(ObjectDetectorBase):
                         confidence=conf,
                     )
                 )
-        
+
         return detections
 
     def detect_batch(self, frames: List[np.ndarray]) -> List[List[Detection]]:

@@ -1,15 +1,15 @@
 """PoseEstimator2D: returns COCO17 2D joints per frame."""
+
 from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import numpy as np
 
 from ..utils.timeline import (
-    COCO17_JOINT_NAMES,
     NUM_JOINTS,
     SENTINEL_2D,
     SENTINEL_BBOX,
@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Detection2D:
     """A 2D pose detection for a single person."""
+
     bbox_xyxy: List[float]  # [x1, y1, x2, y2]
     keypoints_2d: np.ndarray  # (17, 2)
     conf_2d: np.ndarray  # (17,)
@@ -220,15 +221,14 @@ class PoseEstimator2D:
             self._estimator = StubPoseEstimator2D(**kwargs)
         elif backend == "mediapipe":
             from .mediapipe_estimator import MediaPipePoseEstimator
+
             self._estimator = MediaPipePoseEstimator(**kwargs)
         else:
             raise ValueError(f"Unknown backend: {backend}. Use 'stub' or 'mediapipe'")
 
         self._prev_bbox: Optional[List[float]] = None
 
-    def estimate_frame(
-        self, frame: np.ndarray, frame_idx: int
-    ) -> PoseFrame:
+    def estimate_frame(self, frame: np.ndarray, frame_idx: int) -> PoseFrame:
         """Estimate 2D pose for a single frame.
 
         Selects single person using highest confidence or closest to previous.
@@ -292,15 +292,11 @@ class PoseEstimator2D:
             joint_occluded=joint_occluded,
             joint_in_frame=joint_in_frame,
             world_coords_3d=(
-                det.world_keypoints_3d.tolist()
-                if det.world_keypoints_3d is not None
-                else None
+                det.world_keypoints_3d.tolist() if det.world_keypoints_3d is not None else None
             ),
         )
 
-    def estimate_video(
-        self, frames: List[np.ndarray]
-    ) -> List[PoseFrame]:
+    def estimate_video(self, frames: List[np.ndarray]) -> List[PoseFrame]:
         """Estimate 2D poses for all frames in a video.
 
         Args:

@@ -1,20 +1,16 @@
 """JSONExporter: exports timeline data to JSON files."""
+
 from __future__ import annotations
 
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 
 from ..utils.timeline import (
-    COCO17_JOINT_NAMES,
-    ActionSegment,
-    ContactEvent,
-    ObjectTrack,
-    PersonPose,
     Timeline,
 )
 
@@ -244,15 +240,17 @@ class JSONExporter:
                 for f in track.frames
             ]
 
-            objects_data.append({
-                "object_id": obj_id,
-                "class_name": track.class_name,
-                "class_id": track.class_id,
-                "num_frames": T,
-                "bbox_xyxy": bbox_xyxy,
-                "conf": conf,
-                "states": states,
-            })
+            objects_data.append(
+                {
+                    "object_id": obj_id,
+                    "class_name": track.class_name,
+                    "class_id": track.class_id,
+                    "num_frames": T,
+                    "bbox_xyxy": bbox_xyxy,
+                    "conf": conf,
+                    "states": states,
+                }
+            )
 
         data = {
             "schema_version": "1.0",
@@ -281,19 +279,21 @@ class JSONExporter:
         events_data = []
 
         for event in timeline.events:
-            events_data.append({
-                "event_id": event.event_id,
-                "type": event.event_type,
-                "t_start": event.t_start,
-                "t_end": event.t_end,
-                "frame_start": event.frame_start,
-                "frame_end": event.frame_end,
-                "hand": event.hand.value,
-                "object_id": event.object_id,
-                "label": event.label,
-                "conf": event.conf,
-                "evidence": event.evidence,
-            })
+            events_data.append(
+                {
+                    "event_id": event.event_id,
+                    "type": event.event_type,
+                    "t_start": event.t_start,
+                    "t_end": event.t_end,
+                    "frame_start": event.frame_start,
+                    "frame_end": event.frame_end,
+                    "hand": event.hand.value,
+                    "object_id": event.object_id,
+                    "label": event.label,
+                    "conf": event.conf,
+                    "evidence": event.evidence,
+                }
+            )
 
         data = {
             "schema_version": "1.0",
@@ -319,17 +319,19 @@ class JSONExporter:
         segments_data = []
 
         for segment in timeline.segments:
-            segments_data.append({
-                "seg_id": segment.seg_id,
-                "t_start": segment.t_start,
-                "t_end": segment.t_end,
-                "frame_start": segment.frame_start,
-                "frame_end": segment.frame_end,
-                "label": segment.label,
-                "conf": segment.conf,
-                "objects_involved": segment.objects_involved,
-                "evidence": segment.evidence,
-            })
+            segments_data.append(
+                {
+                    "seg_id": segment.seg_id,
+                    "t_start": segment.t_start,
+                    "t_end": segment.t_end,
+                    "frame_start": segment.frame_start,
+                    "frame_end": segment.frame_end,
+                    "label": segment.label,
+                    "conf": segment.conf,
+                    "objects_involved": segment.objects_involved,
+                    "evidence": segment.evidence,
+                }
+            )
 
         data = {
             "schema_version": "1.0",

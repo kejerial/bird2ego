@@ -9,6 +9,7 @@ pose frame with a similarity fit between the 2D and 3D joints of the same
 frame. That places the object on the torso depth plane. It is an
 approximation, and `objects_ego` carries it as such.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,12 +21,11 @@ import numpy as np
 
 from ..utils.timeline import (
     JOINT_IDX,
-    NUM_JOINTS,
     SENTINEL_3D,
     Timeline,
     is_bbox_valid,
 )
-from .transformer import EgocentricFrame, EgocentricTimeSeries, EgocentricTransformer
+from .transformer import EgocentricTimeSeries, EgocentricTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +74,7 @@ def fit_image_to_pose_3d(
     Returns:
         The fit, or None when fewer than three joints qualify.
     """
-    valid = (
-        (conf_3d > min_conf)
-        & (coords_3d[:, 0] != SENTINEL_3D[0])
-        & (keypoints_2d[:, 0] >= 0)
-    )
+    valid = (conf_3d > min_conf) & (coords_3d[:, 0] != SENTINEL_3D[0]) & (keypoints_2d[:, 0] >= 0)
     if int(np.count_nonzero(valid)) < 3:
         return None
 
@@ -243,9 +239,7 @@ class EgocentricStage:
             for obj_frame in track.frames:
                 if not is_bbox_valid(obj_frame.bbox_xyxy):
                     continue
-                by_frame.setdefault(obj_frame.frame_idx, {})[object_id] = (
-                    obj_frame.bbox_xyxy
-                )
+                by_frame.setdefault(obj_frame.frame_idx, {})[object_id] = obj_frame.bbox_xyxy
         return by_frame
 
     @staticmethod
@@ -256,9 +250,7 @@ class EgocentricStage:
         if fit is None:
             return {}
         return {
-            object_id: fit.apply(
-                (bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0
-            )
+            object_id: fit.apply((bbox[0] + bbox[2]) / 2.0, (bbox[1] + bbox[3]) / 2.0)
             for object_id, bbox in boxes.items()
         }
 
@@ -288,27 +280,21 @@ class EgocentricStage:
         boxes_by_frame = self._index_object_boxes(timeline)
 
         for i, pose_frame in enumerate(person_pose.frames):
-            timestamp = (
-                timeline.frames[i].t if i < len(timeline.frames) else float(i)
-            )
+            timestamp = timeline.frames[i].t if i < len(timeline.frames) else float(i)
             keypoints_2d = np.asarray(pose_frame.keypoints_2d_px, dtype=np.float32)
             coords_3d = np.asarray(pose_frame.coords_3d, dtype=np.float32)
             conf_3d = np.asarray(pose_frame.conf_3d, dtype=np.float32)
 
             has_pose = bool(np.any(conf_3d > self.min_joint_conf))
             fit = (
-                fit_image_to_pose_3d(
-                    keypoints_2d, coords_3d, conf_3d, self.min_joint_conf
-                )
+                fit_image_to_pose_3d(keypoints_2d, coords_3d, conf_3d, self.min_joint_conf)
                 if has_pose
                 else None
             )
 
             hands: Dict[str, Tuple[np.ndarray, float]] = {}
             if use_hands and has_pose and i < len(frames):
-                hands = self._hands_for_frame(
-                    frames[i], keypoints_2d, coords_3d, conf_3d, fit
-                )
+                hands = self._hands_for_frame(frames[i], keypoints_2d, coords_3d, conf_3d, fit)
 
             left = hands.get("left")
             right = hands.get("right")
@@ -322,9 +308,7 @@ class EgocentricStage:
                 left_hand_conf=left[1] if left else 0.0,
                 right_hand_3d=right[0] if right else None,
                 right_hand_conf=right[1] if right else 0.0,
-                objects=self._object_centers(
-                    boxes_by_frame.get(pose_frame.frame_idx, {}), fit
-                ),
+                objects=self._object_centers(boxes_by_frame.get(pose_frame.frame_idx, {}), fit),
             )
             series.frames.append(ego_frame)
 
@@ -398,16 +382,10 @@ def summarize_series(series: EgocentricTimeSeries) -> Dict[str, int]:
     return {
         "num_frames": series.num_frames,
         "frames_with_head": sum(1 for f in series.frames if f.head_confidence > 0.0),
-        "frames_with_left_hand": sum(
-            1 for f in series.frames if f.left_hand_ego is not None
-        ),
-        "frames_with_right_hand": sum(
-            1 for f in series.frames if f.right_hand_ego is not None
-        ),
+        "frames_with_left_hand": sum(1 for f in series.frames if f.left_hand_ego is not None),
+        "frames_with_right_hand": sum(1 for f in series.frames if f.right_hand_ego is not None),
         "frames_with_arms": sum(
-            1
-            for f in series.frames
-            if f.left_arm_ego is not None or f.right_arm_ego is not None
+            1 for f in series.frames if f.left_arm_ego is not None or f.right_arm_ego is not None
         ),
         "frames_with_objects": sum(1 for f in series.frames if f.objects_ego),
     }

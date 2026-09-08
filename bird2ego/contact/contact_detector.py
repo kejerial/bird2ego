@@ -1,4 +1,5 @@
 """ContactDetector: detects hand-object contacts using geometry and motion."""
+
 from __future__ import annotations
 
 import logging
@@ -9,11 +10,11 @@ import numpy as np
 
 from ..utils.timeline import (
     JOINT_IDX,
+    SENTINEL_2D,
+    SENTINEL_BBOX,
     HandSide,
     ObjectTrack,
     PersonPose,
-    SENTINEL_2D,
-    SENTINEL_BBOX,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ContactDetectorConfig:
     """Configuration for contact detection."""
+
     # Distance threshold for contact (pixels)
     contact_distance_threshold: float = 50.0
 
@@ -39,6 +41,7 @@ class ContactDetectorConfig:
 @dataclass
 class ContactFrame:
     """Contact information for a single frame."""
+
     frame_idx: int
     hand: HandSide
     object_id: int
@@ -120,39 +123,35 @@ class ContactDetector:
 
             # Check left hand
             if left_pos is not None:
-                distance = self._compute_hand_object_distance(
-                    left_pos, bbox
+                distance = self._compute_hand_object_distance(left_pos, bbox)
+                is_contact = self._update_contact_state(HandSide.LEFT, obj_id, distance)
+                contacts.append(
+                    ContactFrame(
+                        frame_idx=frame_idx,
+                        hand=HandSide.LEFT,
+                        object_id=obj_id,
+                        distance=distance,
+                        is_contact=is_contact,
+                        hand_position=left_pos,
+                        object_center=obj_center,
+                    )
                 )
-                is_contact = self._update_contact_state(
-                    HandSide.LEFT, obj_id, distance
-                )
-                contacts.append(ContactFrame(
-                    frame_idx=frame_idx,
-                    hand=HandSide.LEFT,
-                    object_id=obj_id,
-                    distance=distance,
-                    is_contact=is_contact,
-                    hand_position=left_pos,
-                    object_center=obj_center,
-                ))
 
             # Check right hand
             if right_pos is not None:
-                distance = self._compute_hand_object_distance(
-                    right_pos, bbox
+                distance = self._compute_hand_object_distance(right_pos, bbox)
+                is_contact = self._update_contact_state(HandSide.RIGHT, obj_id, distance)
+                contacts.append(
+                    ContactFrame(
+                        frame_idx=frame_idx,
+                        hand=HandSide.RIGHT,
+                        object_id=obj_id,
+                        distance=distance,
+                        is_contact=is_contact,
+                        hand_position=right_pos,
+                        object_center=obj_center,
+                    )
                 )
-                is_contact = self._update_contact_state(
-                    HandSide.RIGHT, obj_id, distance
-                )
-                contacts.append(ContactFrame(
-                    frame_idx=frame_idx,
-                    hand=HandSide.RIGHT,
-                    object_id=obj_id,
-                    distance=distance,
-                    is_contact=is_contact,
-                    hand_position=right_pos,
-                    object_center=obj_center,
-                ))
 
         return contacts
 
@@ -172,10 +171,7 @@ class ContactDetector:
         """
         self.reset()
         T = person_pose.num_frames
-        return [
-            self.detect_frame(person_pose, object_tracks, t)
-            for t in range(T)
-        ]
+        return [self.detect_frame(person_pose, object_tracks, t) for t in range(T)]
 
     def _get_hand_position(
         self,
@@ -206,9 +202,9 @@ class ContactDetector:
         wrist_in_frame = pose_frame.joint_in_frame[wrist_idx]
 
         wrist_usable = (
-            wrist_in_frame and
-            wrist_conf >= self.config.min_joint_conf_2d and
-            wrist_kp != SENTINEL_2D
+            wrist_in_frame
+            and wrist_conf >= self.config.min_joint_conf_2d
+            and wrist_kp != SENTINEL_2D
         )
 
         if not wrist_usable:
@@ -226,9 +222,9 @@ class ContactDetector:
         elbow_in_frame = pose_frame.joint_in_frame[elbow_idx]
 
         elbow_usable = (
-            elbow_in_frame and
-            elbow_conf >= self.config.min_joint_conf_2d and
-            elbow_kp != SENTINEL_2D
+            elbow_in_frame
+            and elbow_conf >= self.config.min_joint_conf_2d
+            and elbow_kp != SENTINEL_2D
         )
 
         if elbow_usable:

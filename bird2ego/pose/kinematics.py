@@ -2,6 +2,7 @@
 
 Optional in v1, includes placeholders for future implementation.
 """
+
 from __future__ import annotations
 
 import logging
@@ -10,7 +11,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from ..utils.timeline import JOINT_IDX, NUM_JOINTS, SENTINEL_3D, PersonPose, PoseFrame
+from ..utils.timeline import JOINT_IDX, NUM_JOINTS, SENTINEL_3D, PersonPose
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ JOINT_ANGLES: Dict[str, Tuple[str, str, str]] = {
 @dataclass
 class KinematicsFrame:
     """Kinematics data for a single frame."""
+
     frame_idx: int
     joint_angles: Dict[str, float] = field(default_factory=dict)
     joint_velocities_3d: Optional[np.ndarray] = None  # (17, 3)
@@ -65,6 +67,7 @@ class KinematicsFrame:
 @dataclass
 class KinematicsData:
     """Time-series kinematics data."""
+
     frames: List[KinematicsFrame] = field(default_factory=list)
 
     @property
@@ -121,9 +124,7 @@ class KinematicsProcessor:
             kf = KinematicsFrame(frame_idx=t)
 
             # Joint angles
-            kf.joint_angles = self._compute_joint_angles(
-                coords_3d[t], conf_3d[t]
-            )
+            kf.joint_angles = self._compute_joint_angles(coords_3d[t], conf_3d[t])
 
             # Velocities
             if velocities is not None:
@@ -131,9 +132,7 @@ class KinematicsProcessor:
                 kf.joint_speeds = np.linalg.norm(velocities[t], axis=1)
 
             # Bone lengths
-            kf.bone_lengths = self._compute_bone_lengths(
-                coords_3d[t], conf_3d[t]
-            )
+            kf.bone_lengths = self._compute_bone_lengths(coords_3d[t], conf_3d[t])
 
             frames.append(kf)
 
@@ -176,8 +175,7 @@ class KinematicsProcessor:
         sentinel = np.array(SENTINEL_3D)
         for t in range(T):
             for j in range(NUM_JOINTS):
-                if (np.allclose(coords_3d[t, j], sentinel) or
-                    conf_3d[t, j] < self.min_confidence):
+                if np.allclose(coords_3d[t, j], sentinel) or conf_3d[t, j] < self.min_confidence:
                     velocities[t, j] = 0.0
 
         # Apply smoothing
@@ -185,9 +183,7 @@ class KinematicsProcessor:
             kernel = np.ones(self.velocity_smoothing) / self.velocity_smoothing
             for j in range(NUM_JOINTS):
                 for d in range(3):
-                    velocities[:, j, d] = np.convolve(
-                        velocities[:, j, d], kernel, mode="same"
-                    )
+                    velocities[:, j, d] = np.convolve(velocities[:, j, d], kernel, mode="same")
 
         return velocities
 
@@ -214,14 +210,18 @@ class KinematicsProcessor:
             c_idx = JOINT_IDX[child]
 
             # Check validity
-            if (np.allclose(coords_3d[j_idx], sentinel) or
-                np.allclose(coords_3d[p_idx], sentinel) or
-                np.allclose(coords_3d[c_idx], sentinel)):
+            if (
+                np.allclose(coords_3d[j_idx], sentinel)
+                or np.allclose(coords_3d[p_idx], sentinel)
+                or np.allclose(coords_3d[c_idx], sentinel)
+            ):
                 continue
 
-            if (conf_3d[j_idx] < self.min_confidence or
-                conf_3d[p_idx] < self.min_confidence or
-                conf_3d[c_idx] < self.min_confidence):
+            if (
+                conf_3d[j_idx] < self.min_confidence
+                or conf_3d[p_idx] < self.min_confidence
+                or conf_3d[c_idx] < self.min_confidence
+            ):
                 continue
 
             # Compute vectors
@@ -257,12 +257,12 @@ class KinematicsProcessor:
                 c_idx = JOINT_IDX[child_name]
 
                 # Check validity
-                if (np.allclose(coords_3d[p_idx], sentinel) or
-                    np.allclose(coords_3d[c_idx], sentinel)):
+                if np.allclose(coords_3d[p_idx], sentinel) or np.allclose(
+                    coords_3d[c_idx], sentinel
+                ):
                     continue
 
-                if (conf_3d[p_idx] < self.min_confidence or
-                    conf_3d[c_idx] < self.min_confidence):
+                if conf_3d[p_idx] < self.min_confidence or conf_3d[c_idx] < self.min_confidence:
                     continue
 
                 bone_name = f"{parent_name}_{child_name}"

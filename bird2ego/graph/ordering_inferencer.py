@@ -1,4 +1,5 @@
 """OrderingInferencer: infers causal and temporal ordering between segments."""
+
 from __future__ import annotations
 
 import logging
@@ -6,15 +7,16 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
 
-from ..utils.timeline import ActionSegment, ObjectState, Timeline
-from .precondition_extractor import ObjectPrecondition, SegmentPreconditions
-from .postcondition_extractor import SegmentPostconditions, StateChange
+from ..utils.timeline import ActionSegment, Timeline
+from .postcondition_extractor import SegmentPostconditions
+from .precondition_extractor import SegmentPreconditions
 
 logger = logging.getLogger(__name__)
 
 
 class EdgeType(str, Enum):
     """Types of edges in the task graph."""
+
     CAUSAL = "causal"  # A's postcondition satisfies B's precondition
     TEMPORAL = "temporal"  # A comes before B but no causal link found
 
@@ -22,6 +24,7 @@ class EdgeType(str, Enum):
 @dataclass
 class InferredEdge:
     """An inferred edge between two segments."""
+
     from_seg_id: int
     to_seg_id: int
     edge_type: EdgeType
@@ -94,7 +97,7 @@ class OrderingInferencer:
 
         # Check all pairs where A comes before B
         for i, seg_a in enumerate(sorted_segments):
-            for seg_b in sorted_segments[i + 1:]:
+            for seg_b in sorted_segments[i + 1 :]:
                 # Skip if no overlap in time (A must end before B starts)
                 if seg_a.frame_end >= seg_b.frame_start:
                     continue
@@ -106,7 +109,8 @@ class OrderingInferencer:
 
                 # Try to find causal relationship
                 causal_edge = self._find_causal_edge(
-                    seg_a, seg_b,
+                    seg_a,
+                    seg_b,
                     preconditions.get(seg_a.seg_id),
                     postconditions.get(seg_a.seg_id),
                     preconditions.get(seg_b.seg_id),
@@ -167,9 +171,7 @@ class OrderingInferencer:
         a_final_states = postcond_a.get_final_states()
 
         # Get B's required states
-        b_precond_map = {
-            p.object_id: p for p in precond_b.object_preconditions
-        }
+        b_precond_map = {p.object_id: p for p in precond_b.object_preconditions}
 
         # Check if A's effects enable B's preconditions
         matched_objects = []
@@ -190,10 +192,7 @@ class OrderingInferencer:
             return None
 
         # Also check if A produces changes that B requires
-        a_changes = {
-            p.object_id: p.changes
-            for p in postcond_a.object_postconditions
-        }
+        a_changes = {p.object_id: p.changes for p in postcond_a.object_postconditions}
 
         for obj_id in matched_objects:
             if obj_id in a_changes and a_changes[obj_id]:

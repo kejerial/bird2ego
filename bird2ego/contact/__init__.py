@@ -1,4 +1,5 @@
 """Contact detection and interaction classification."""
+
 from .contact_detector import (
     ContactDetector,
     ContactDetectorConfig,

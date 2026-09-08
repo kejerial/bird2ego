@@ -1,18 +1,16 @@
 """Tests for pose schema validity."""
+
 import json
 
 import pytest
 
 # Add src to path
-
 from bird2ego.utils.timeline import (
     COCO17_JOINT_NAMES,
     NUM_JOINTS,
     SENTINEL_2D,
     SENTINEL_3D,
     SENTINEL_BBOX,
-    PersonPose,
-    PoseFrame,
     create_empty_person_pose,
     create_empty_pose_frame,
 )
@@ -29,10 +27,23 @@ class TestCOCO17Schema:
     def test_joint_names(self):
         """Verify expected joint names are present."""
         expected = [
-            "nose", "left_eye", "right_eye", "left_ear", "right_ear",
-            "left_shoulder", "right_shoulder", "left_elbow", "right_elbow",
-            "left_wrist", "right_wrist", "left_hip", "right_hip",
-            "left_knee", "right_knee", "left_ankle", "right_ankle",
+            "nose",
+            "left_eye",
+            "right_eye",
+            "left_ear",
+            "right_ear",
+            "left_shoulder",
+            "right_shoulder",
+            "left_elbow",
+            "right_elbow",
+            "left_wrist",
+            "right_wrist",
+            "left_hip",
+            "right_hip",
+            "left_knee",
+            "right_knee",
+            "left_ankle",
+            "right_ankle",
         ]
         assert COCO17_JOINT_NAMES == expected
 

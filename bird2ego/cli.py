@@ -1,4 +1,5 @@
 """Command-line entry point for the bird2ego pipeline."""
+
 from __future__ import annotations
 
 import argparse

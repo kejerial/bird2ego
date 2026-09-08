@@ -1,4 +1,5 @@
 """Shared utilities and data contracts."""
+
 from .config import (
     ContactConfig,
     EgocentricConfig,
@@ -25,8 +26,8 @@ from .timeline import (
     SENTINEL_BBOX,
     SENTINEL_CONF,
     ActionSegment,
-    Containment,
     ContactEvent,
+    Containment,
     FrameInfo,
     HandSide,
     InteractionState,

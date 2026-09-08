@@ -1,10 +1,11 @@
 """GraphExporter: exports task graph to GraphML and JSON formats."""
+
 from __future__ import annotations
 
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import networkx as nx
 
@@ -148,12 +149,10 @@ class GraphExporter:
 
         # Causal vs temporal edge counts
         causal_count = sum(
-            1 for _, _, d in graph.edges(data=True)
-            if d.get("edge_type") == "causal"
+            1 for _, _, d in graph.edges(data=True) if d.get("edge_type") == "causal"
         )
         temporal_count = sum(
-            1 for _, _, d in graph.edges(data=True)
-            if d.get("edge_type") == "temporal"
+            1 for _, _, d in graph.edges(data=True) if d.get("edge_type") == "temporal"
         )
         metadata["num_causal_edges"] = causal_count
         metadata["num_temporal_edges"] = temporal_count

@@ -1,4 +1,5 @@
 """TrajectoryBuilder: builds per-object trajectory time series."""
+
 from __future__ import annotations
 
 import logging
@@ -7,13 +8,9 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 from ..utils.timeline import (
-    ObjectFrame,
-    ObjectTrack,
-    ObjectState,
-    Timeline,
     SENTINEL_BBOX,
-    SENTINEL_CONF,
-    create_empty_object_frame,
+    ObjectTrack,
+    Timeline,
     create_empty_object_track,
 )
 from .object_detector import Detection
@@ -61,9 +58,7 @@ class TrajectoryBuilder:
         tracker.reset()
 
         # Track through video and collect results
-        frame_results: Dict[int, Dict[int, Detection]] = {
-            i: {} for i in range(num_frames)
-        }
+        frame_results: Dict[int, Dict[int, Detection]] = {i: {} for i in range(num_frames)}
 
         for frame_idx, dets in enumerate(detections_per_frame):
             results = tracker.update(dets, frame_idx)
@@ -127,6 +122,7 @@ class TrajectoryBuilder:
         """
         if tracker is None:
             from .object_tracker import ObjectTracker
+
             tracker = ObjectTracker(backend="iou")
 
         num_frames = len(detections_per_frame)
@@ -200,9 +196,7 @@ class TrajectoryBuilder:
             return
 
         # Find valid frames
-        valid = np.array([
-            f.bbox_xyxy != SENTINEL_BBOX for f in track.frames
-        ])
+        valid = np.array([f.bbox_xyxy != SENTINEL_BBOX for f in track.frames])
 
         # Find gaps
         i = 0

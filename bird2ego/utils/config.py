@@ -1,4 +1,5 @@
 """Configuration loading and validation."""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VideoConfig:
     """Video processing configuration."""
+
     target_fps: Optional[float] = 30.0
     max_frames: Optional[int] = None
 
@@ -21,6 +23,7 @@ class VideoConfig:
 @dataclass
 class FrameConfig:
     """Frame processing configuration."""
+
     resize_policy: str = "none"
     target_width: int = 640
     target_height: int = 480
@@ -30,6 +33,7 @@ class FrameConfig:
 @dataclass
 class OneEuroConfig:
     """One Euro filter configuration."""
+
     min_cutoff: float = 1.0
     beta: float = 0.007
     d_cutoff: float = 1.0
@@ -38,6 +42,7 @@ class OneEuroConfig:
 @dataclass
 class SmoothingConfig:
     """Pose smoothing configuration."""
+
     method: str = "one_euro"
     window_size: int = 5
     alpha: float = 0.5
@@ -47,6 +52,7 @@ class SmoothingConfig:
 @dataclass
 class PoseConfig:
     """Pose estimation configuration."""
+
     backend_2d: str = "stub"
     backend_3d: str = "stub"
     min_joint_conf_2d: float = 0.2
@@ -57,6 +63,7 @@ class PoseConfig:
 @dataclass
 class ObjectsConfig:
     """Object detection configuration."""
+
     detector_backend: str = "stub"
     classes: Optional[List[str]] = None
     confidence_threshold: float = 0.5
@@ -66,6 +73,7 @@ class ObjectsConfig:
 @dataclass
 class TrackerConfig:
     """Object tracking configuration."""
+
     backend: str = "iou"
     iou_threshold: float = 0.3
     max_age: int = 30
@@ -77,6 +85,7 @@ class TrackerConfig:
 @dataclass
 class ContactConfig:
     """Contact detection configuration."""
+
     distance_threshold: float = 50.0
     onset_frames: int = 2
     offset_frames: int = 3
@@ -86,6 +95,7 @@ class ContactConfig:
 @dataclass
 class InteractionConfig:
     """Interaction classification configuration."""
+
     motion_threshold: float = 5.0
     motion_correlation_threshold: float = 0.7
     min_grasp_duration: int = 5
@@ -95,6 +105,7 @@ class InteractionConfig:
 @dataclass
 class SegmentationConfig:
     """Action segmentation configuration."""
+
     min_duration: int = 10
     merge_threshold: int = 5
     hysteresis: int = 3
@@ -107,19 +118,17 @@ class SegmentationConfig:
 @dataclass
 class StateConfig:
     """State classification configuration."""
+
     motion_threshold: float = 5.0
     motion_window: int = 3
-    fixture_classes: List[str] = field(
-        default_factory=lambda: ["fixture", "machine", "station"]
-    )
-    container_classes: List[str] = field(
-        default_factory=lambda: ["bin", "box", "container"]
-    )
+    fixture_classes: List[str] = field(default_factory=lambda: ["fixture", "machine", "station"])
+    container_classes: List[str] = field(default_factory=lambda: ["bin", "box", "container"])
 
 
 @dataclass
 class GraphConfig:
     """Task graph configuration."""
+
     require_shared_objects: bool = True
     min_causal_confidence: float = 0.5
     add_temporal_fallback: bool = True
@@ -128,6 +137,7 @@ class GraphConfig:
 @dataclass
 class EgocentricConfig:
     """Egocentric stage configuration."""
+
     enabled: bool = False
     export_frames: bool = True
     render: bool = False
@@ -144,6 +154,7 @@ class EgocentricConfig:
 @dataclass
 class OutputConfig:
     """Output configuration."""
+
     json_indent: int = 2
     export_visualization: bool = False
 
@@ -151,6 +162,7 @@ class OutputConfig:
 @dataclass
 class PipelineConfig:
     """Complete pipeline configuration."""
+
     video: VideoConfig = field(default_factory=VideoConfig)
     frame: FrameConfig = field(default_factory=FrameConfig)
     pose: PoseConfig = field(default_factory=PoseConfig)
@@ -281,7 +293,9 @@ def _dict_to_config(data: Dict[str, Any]) -> PipelineConfig:
         i = data["interaction"]
         config.interaction = InteractionConfig(
             motion_threshold=i.get("motion_threshold", config.interaction.motion_threshold),
-            motion_correlation_threshold=i.get("motion_correlation_threshold", config.interaction.motion_correlation_threshold),
+            motion_correlation_threshold=i.get(
+                "motion_correlation_threshold", config.interaction.motion_correlation_threshold
+            ),
             min_grasp_duration=i.get("min_grasp_duration", config.interaction.min_grasp_duration),
             min_push_duration=i.get("min_push_duration", config.interaction.min_push_duration),
         )
@@ -293,10 +307,18 @@ def _dict_to_config(data: Dict[str, Any]) -> PipelineConfig:
             min_duration=s.get("min_duration", config.segmentation.min_duration),
             merge_threshold=s.get("merge_threshold", config.segmentation.merge_threshold),
             hysteresis=s.get("hysteresis", config.segmentation.hysteresis),
-            detect_contact_changes=s.get("detect_contact_changes", config.segmentation.detect_contact_changes),
-            detect_motion_changes=s.get("detect_motion_changes", config.segmentation.detect_motion_changes),
-            detect_support_changes=s.get("detect_support_changes", config.segmentation.detect_support_changes),
-            detect_containment_changes=s.get("detect_containment_changes", config.segmentation.detect_containment_changes),
+            detect_contact_changes=s.get(
+                "detect_contact_changes", config.segmentation.detect_contact_changes
+            ),
+            detect_motion_changes=s.get(
+                "detect_motion_changes", config.segmentation.detect_motion_changes
+            ),
+            detect_support_changes=s.get(
+                "detect_support_changes", config.segmentation.detect_support_changes
+            ),
+            detect_containment_changes=s.get(
+                "detect_containment_changes", config.segmentation.detect_containment_changes
+            ),
         )
 
     # State config
@@ -313,9 +335,15 @@ def _dict_to_config(data: Dict[str, Any]) -> PipelineConfig:
     if "graph" in data:
         g = data["graph"]
         config.graph = GraphConfig(
-            require_shared_objects=g.get("require_shared_objects", config.graph.require_shared_objects),
-            min_causal_confidence=g.get("min_causal_confidence", config.graph.min_causal_confidence),
-            add_temporal_fallback=g.get("add_temporal_fallback", config.graph.add_temporal_fallback),
+            require_shared_objects=g.get(
+                "require_shared_objects", config.graph.require_shared_objects
+            ),
+            min_causal_confidence=g.get(
+                "min_causal_confidence", config.graph.min_causal_confidence
+            ),
+            add_temporal_fallback=g.get(
+                "add_temporal_fallback", config.graph.add_temporal_fallback
+            ),
         )
 
     # Egocentric config
@@ -341,7 +369,9 @@ def _dict_to_config(data: Dict[str, Any]) -> PipelineConfig:
         out = data["output"]
         config.output = OutputConfig(
             json_indent=out.get("json_indent", config.output.json_indent),
-            export_visualization=out.get("export_visualization", config.output.export_visualization),
+            export_visualization=out.get(
+                "export_visualization", config.output.export_visualization
+            ),
         )
 
     return config
