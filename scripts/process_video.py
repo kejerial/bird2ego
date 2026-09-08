@@ -7,10 +7,6 @@ in bird2ego.cli, which the `bird2ego` console command also uses.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-
-# Allow running from a checkout without installing the package.
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from bird2ego.cli import main
 

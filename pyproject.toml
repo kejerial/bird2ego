@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bird2ego"
+description = "Turn third-person task video into a structured, egocentric task record."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dynamic = ["version"]
+dependencies = [
+    "numpy>=1.26",
+    "opencv-python-headless>=4.10",
+    "pyyaml>=6.0",
+    "networkx>=3.2",
+    "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+# Real model backends, needed by configs/real.yaml.
+real = [
+    "mediapipe>=0.10.20",
+    "ultralytics>=8.3",
+]
+# Live viewers (scripts/webcam_test.py, scripts/video_test.py) call
+# cv2.imshow, which the headless OpenCV build does not provide.
+viewer = ["opencv-python>=4.10"]
+# assets/demo.gif (scripts/make_demo_gif.py).
+demo = ["imageio>=2.34"]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+bird2ego = "bird2ego.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "bird2ego.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["bird2ego*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -6,8 +6,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from bird2ego.egocentric import EgocentricStage, fit_image_to_pose_3d, summarize_series
 from bird2ego.egocentric.transformer import EgocentricTransformer
 from bird2ego.pipeline import PipelineOrchestrator

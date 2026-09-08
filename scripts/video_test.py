@@ -11,9 +11,6 @@ from typing import Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from bird2ego.pose import PoseEstimator2D, PoseLifter3D, PoseTracker, SmoothingMethod
 from bird2ego.objects import ObjectDetector, ObjectTracker, StateClassifier, TrajectoryBuilder
 from bird2ego.contact import ContactDetector, ContactDetectorConfig, InteractionClassifier

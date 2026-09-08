@@ -7,16 +7,11 @@ Works from any camera angle: front, side, back, diagonal.
 from __future__ import annotations
 
 import argparse
-import sys
 import time
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
-
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from bird2ego.pose import PoseEstimator2D, PoseLifter3D
 from bird2ego.objects import ObjectDetector, ObjectTracker
