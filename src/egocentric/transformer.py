@@ -312,15 +312,15 @@ class EgocentricTransformer:
                 left_hand_3d, head_pos, forward, up, right
             )
             # Detect pinch (thumb tip to index tip distance)
-            left_pinch_dist = np.linalg.norm(left_hand_3d[4] - left_hand_3d[8])
-            left_pinching = left_pinch_dist < self.pinch_threshold
+            left_pinch_dist = float(np.linalg.norm(left_hand_3d[4] - left_hand_3d[8]))
+            left_pinching = bool(left_pinch_dist < self.pinch_threshold)
         
         if right_hand_3d is not None and right_hand_conf > 0.3:
             right_hand_ego = self.transform_to_egocentric(
                 right_hand_3d, head_pos, forward, up, right
             )
-            right_pinch_dist = np.linalg.norm(right_hand_3d[4] - right_hand_3d[8])
-            right_pinching = right_pinch_dist < self.pinch_threshold
+            right_pinch_dist = float(np.linalg.norm(right_hand_3d[4] - right_hand_3d[8]))
+            right_pinching = bool(right_pinch_dist < self.pinch_threshold)
         
         # Transform arm keypoints (shoulder, elbow, wrist)
         if pose_3d is not None and pose_conf is not None:
@@ -378,7 +378,7 @@ class EgocentricTransformer:
             left_arm_ego=left_arm_ego,
             right_arm_ego=right_arm_ego,
             objects_ego=objects_ego,
-            head_confidence=head_conf,
+            head_confidence=float(head_conf),
             left_hand_confidence=left_hand_conf,
             right_hand_confidence=right_hand_conf,
         )

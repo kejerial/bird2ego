@@ -6,13 +6,17 @@ Vision-Language-Action models.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from dataclasses import asdict
 
 import numpy as np
 
+from ..output.json_exporter import NumpyEncoder
 from .transformer import EgocentricFrame, EgocentricTimeSeries
+
+logger = logging.getLogger(__name__)
 
 
 def export_egocentric_json(
@@ -20,16 +24,19 @@ def export_egocentric_json(
     output_path: str,
     video_info: Optional[Dict[str, Any]] = None,
     action_labels: Optional[List[Dict]] = None,
+    indent: int = 2,
 ) -> None:
     """Export egocentric data to JSON for VLA training.
-    
+
     Args:
         ego_series: Egocentric time-series data
         output_path: Path to output JSON file
         video_info: Optional video metadata
         action_labels: Optional list of action labels with frame ranges
+        indent: JSON indentation level
     """
     data = {
+        "schema_version": "1.0",
         "format_version": "1.0",
         "type": "egocentric_trajectory",
         "video_info": video_info or {},
@@ -97,9 +104,9 @@ def export_egocentric_json(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(output_path, 'w') as f:
-        json.dump(data, f, indent=2)
-    
-    print(f"Exported egocentric data to {output_path}")
+        json.dump(data, f, indent=indent, cls=NumpyEncoder)
+
+    logger.info(f"Exported egocentric data to {output_path}")
 
 
 def export_action_dataset(
@@ -177,9 +184,9 @@ def export_action_dataset(
     
     dataset_file = output_path / f"{dataset_name}.json"
     with open(dataset_file, 'w') as f:
-        json.dump(dataset, f, indent=2)
-    
-    print(f"Exported {len(segments)} action segments to {dataset_file}")
+        json.dump(dataset, f, indent=2, cls=NumpyEncoder)
+
+    logger.info(f"Exported {len(segments)} action segments to {dataset_file}")
 
 
 class EgocentricRecorder:
