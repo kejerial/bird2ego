@@ -8,14 +8,14 @@ import pytest
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.timeline import (
+from bird2ego.utils.timeline import (
     FrameInfo,
     Timeline,
     create_empty_object_track,
     create_empty_person_pose,
     create_empty_timeline,
 )
-from src.video.temporal_alignment import TemporalAlignment
+from bird2ego.video.temporal_alignment import TemporalAlignment
 
 
 class TestTimelineCreation:

@@ -8,7 +8,7 @@ import pytest
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.timeline import (
+from bird2ego.utils.timeline import (
     COCO17_JOINT_NAMES,
     NUM_JOINTS,
     SENTINEL_2D,

@@ -10,7 +10,7 @@ import pytest
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.graph import (
+from bird2ego.graph import (
     EdgeType,
     InferredEdge,
     OrderingInferencer,
@@ -18,8 +18,8 @@ from src.graph import (
     PreconditionExtractor,
     TaskGraphBuilder,
 )
-from src.output import GraphExporter
-from src.utils.timeline import ActionSegment
+from bird2ego.output import GraphExporter
+from bird2ego.utils.timeline import ActionSegment
 
 
 class TestTaskGraphBuilder:

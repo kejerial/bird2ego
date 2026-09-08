@@ -11,7 +11,7 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.pipeline import run_pipeline
+from bird2ego.pipeline import run_pipeline
 
 
 def setup_logging(verbose: bool = False) -> None:

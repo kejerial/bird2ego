@@ -8,10 +8,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.egocentric import EgocentricStage, fit_image_to_pose_3d, summarize_series
-from src.egocentric.transformer import EgocentricTransformer
-from src.pipeline import PipelineOrchestrator
-from src.utils import JOINT_IDX, NUM_JOINTS, PipelineConfig
+from bird2ego.egocentric import EgocentricStage, fit_image_to_pose_3d, summarize_series
+from bird2ego.egocentric.transformer import EgocentricTransformer
+from bird2ego.pipeline import PipelineOrchestrator
+from bird2ego.utils import JOINT_IDX, NUM_JOINTS, PipelineConfig
 
 # Body measurements of the synthetic subject, in metres.
 SHOULDER_HALF_WIDTH = 0.2
@@ -312,7 +312,7 @@ class TestSummarizeSeries:
 
     def test_counts_are_zero_without_pose(self):
         """No pose data gives an empty series and zero counts."""
-        from src.utils import create_empty_timeline
+        from bird2ego.utils import create_empty_timeline
 
         timeline = create_empty_timeline(fps=30.0, num_frames=5, width=64, height=48)
         series = EgocentricStage().run(timeline)

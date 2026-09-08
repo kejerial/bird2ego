@@ -14,11 +14,11 @@ import numpy as np
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.pose import PoseEstimator2D, PoseLifter3D, PoseTracker, SmoothingMethod
-from src.objects import ObjectDetector, ObjectTracker, StateClassifier, TrajectoryBuilder
-from src.contact import ContactDetector, ContactDetectorConfig, InteractionClassifier
-from src.actions import ActionSegmenter, ActionClassifier
-from src.utils.timeline import (
+from bird2ego.pose import PoseEstimator2D, PoseLifter3D, PoseTracker, SmoothingMethod
+from bird2ego.objects import ObjectDetector, ObjectTracker, StateClassifier, TrajectoryBuilder
+from bird2ego.contact import ContactDetector, ContactDetectorConfig, InteractionClassifier
+from bird2ego.actions import ActionSegmenter, ActionClassifier
+from bird2ego.utils.timeline import (
     COCO17_JOINT_NAMES,
     JOINT_IDX,
     NUM_JOINTS,
@@ -28,7 +28,7 @@ from src.utils.timeline import (
     Timeline,
     create_empty_timeline,
 )
-from src.video import VideoLoader, TemporalAlignment
+from bird2ego.video import VideoLoader, TemporalAlignment
 
 
 # Colors for visualization (BGR)

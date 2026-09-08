@@ -18,12 +18,12 @@ import numpy as np
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.pose import PoseEstimator2D, PoseLifter3D
-from src.objects import ObjectDetector, ObjectTracker
-from src.contact import ContactDetector, ContactDetectorConfig
-from src.contact.hand_detector import HandDetector, ImprovedContactDetector, FINGERTIPS
-from src.egocentric import EgocentricTransformer, EgocentricRenderer
-from src.utils.timeline import (
+from bird2ego.pose import PoseEstimator2D, PoseLifter3D
+from bird2ego.objects import ObjectDetector, ObjectTracker
+from bird2ego.contact import ContactDetector, ContactDetectorConfig
+from bird2ego.contact.hand_detector import HandDetector, ImprovedContactDetector, FINGERTIPS
+from bird2ego.egocentric import EgocentricTransformer, EgocentricRenderer
+from bird2ego.utils.timeline import (
     COCO17_JOINT_NAMES,
     JOINT_IDX,
     NUM_JOINTS,
@@ -471,7 +471,7 @@ class WebcamTestBench:
         The egocentric view should ALWAYS look like first-person, regardless
         of how the person is oriented to the camera.
         """
-        from src.egocentric.transformer import EgocentricFrame
+        from bird2ego.egocentric.transformer import EgocentricFrame
         
         timestamp = self.frame_idx / self.fps
         

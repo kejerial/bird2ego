@@ -139,7 +139,7 @@ python scripts/video_test.py video.mp4   # same view for a file
 
 ## Configuration
 
-Both configs share one schema. `src/utils/config.py` loads the YAML into
+Both configs share one schema. `bird2ego/utils/config.py` loads the YAML into
 dataclasses and applies defaults for missing keys.
 
 | File | Purpose |
@@ -248,7 +248,7 @@ bird2ego/
 │   ├── make_demo_gif.py      builds assets/demo.gif from a run
 │   ├── video_test.py         per-stage viewer for a video file
 │   └── webcam_test.py        live viewer, includes the egocentric window
-├── src/
+├── bird2ego/
 │   ├── pipeline.py           PipelineOrchestrator, run_pipeline
 │   ├── video/                loader, frame processing, temporal alignment
 │   ├── pose/                 2D estimator, 3D lifter, smoothing, kinematics
