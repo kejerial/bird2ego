@@ -1,5 +1,7 @@
 # bird2ego
 
+[![CI](https://github.com/kejerial/bird2ego/actions/workflows/ci.yml/badge.svg)](https://github.com/kejerial/bird2ego/actions/workflows/ci.yml)
+
 bird2ego turns third-person ("bird's-eye") video of a person doing a manual task
 into a structured, machine-readable record of that task. The pipeline loads the
 video, detects and tracks objects, estimates 2D and 3D human pose, infers
@@ -91,24 +93,41 @@ it is a planar approximation, not measured depth.
 The live test bench `scripts/webcam_test.py` drives the same transformer and
 renderer for a camera feed.
 
-## Quick start
+## Install
 
-Install the dependencies.
+bird2ego needs Python 3.11 or later. Install it in a virtual environment.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
-Run the pipeline with the real backends.
+The base install runs the stub backends. Add the extras you need.
+
+| Extra | Command | Adds |
+| --- | --- | --- |
+| `real` | `pip install -e ".[real]"` | MediaPipe and ultralytics, for `configs/real.yaml`. |
+| `viewer` | `pip install -e ".[viewer]"` | The GUI OpenCV build, for the live test benches. |
+| `demo` | `pip install -e ".[demo]"` | imageio, for `scripts/make_demo_gif.py`. |
+| `dev` | `pip install -e ".[dev]"` | pytest and ruff. |
+
+`requirements.txt` holds the exact pinned versions of a known-good environment.
+Install it instead of the extras to reproduce that environment.
+
+## Quick start
+
+The install adds a `bird2ego` command. Run the pipeline with the real backends.
 
 ```bash
-python scripts/process_video.py \
+bird2ego \
   --config configs/real.yaml \
   --input path/to/video.mp4 \
   --out outputs/run1
 ```
+
+`python -m bird2ego` and `python scripts/process_video.py` run the same code.
+Pass a config path relative to the working directory.
 
 The first run downloads the model weights. MediaPipe caches its pose landmarker
 in `~/.cache/mediapipe`. Ultralytics downloads `yolov8n.pt` into the working
@@ -118,7 +137,7 @@ Run the pipeline with no model downloads. The stub config produces synthetic
 poses and detections, which is useful to check the plumbing.
 
 ```bash
-python scripts/process_video.py --config configs/default.yaml --input video.mp4
+bird2ego --config configs/default.yaml --input video.mp4
 ```
 
 The repo ships no sample footage. Render a synthetic clip to try the pipeline.
@@ -209,17 +228,26 @@ egocentric stage is enabled.
 All files carry `"schema_version": "1.0"`. `GraphExporter.load_json` and
 `GraphExporter.load_graphml` read the graph back into NetworkX.
 
-## Tests
+## Development
+
+Install the dev extra, then run the same three checks CI runs.
 
 ```bash
-pytest tests/ -q
+pip install -e ".[dev]"
+ruff check .
+ruff format --check .
+pytest
 ```
+
+`ruff format .` rewrites the files. `pyproject.toml` holds the ruff and pytest
+settings.
+
+## Tests
 
 The tests cover timeline monotonicity and alignment, the pose export schema,
 task-graph export and reload, the egocentric transform against a known synthetic
-pose, and a full stub-backend run that must produce ego frames. They need
-`numpy`, `pyyaml`, `pydantic`, `networkx`, `opencv-python`, and `pytest`. They do
-not need MediaPipe or ultralytics.
+pose, and a full stub-backend run that must produce ego frames. They run on the
+stub backends, so they need no model downloads, no network, and no GPU.
 
 ## Demo GIF
 
@@ -227,7 +255,7 @@ not need MediaPipe or ultralytics.
 
 ```bash
 python scripts/make_synthetic_video.py -o data/samples/synthetic_reach.mp4
-python scripts/process_video.py --config configs/real.yaml \
+bird2ego --config configs/real.yaml \
   --input data/samples/synthetic_reach.mp4 --out outputs/real
 python scripts/make_demo_gif.py --source data/samples/synthetic_reach.mp4 \
   --ego outputs/real/egocentric.mp4 --out assets/demo.gif
@@ -249,6 +277,7 @@ bird2ego/
 │   ├── video_test.py         per-stage viewer for a video file
 │   └── webcam_test.py        live viewer, includes the egocentric window
 ├── bird2ego/
+│   ├── cli.py                argument parsing, the bird2ego command
 │   ├── pipeline.py           PipelineOrchestrator, run_pipeline
 │   ├── video/                loader, frame processing, temporal alignment
 │   ├── pose/                 2D estimator, 3D lifter, smoothing, kinematics
@@ -260,6 +289,7 @@ bird2ego/
 │   ├── output/               JSON and graph exporters
 │   └── utils/                config loading, Timeline data model
 ├── tests/
-├── requirements.txt
+├── pyproject.toml            packaging, ruff, and pytest settings
+├── requirements.txt          pinned versions of a known-good environment
 └── README.md
 ```
